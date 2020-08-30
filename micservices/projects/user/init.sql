@@ -1,5 +1,5 @@
-create schema if not exists user;
-create table if not exists user.user
+create schema if not exists go_project;
+create table if not exists go_project.user
 (
     id         bigint auto_increment primary key,
     username   varchar(100)                        not null,
