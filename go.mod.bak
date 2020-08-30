@@ -1,0 +1,38 @@
+module thinking-in-go
+
+go 1.15
+
+// require github.com/jinzhu/gorm v1.9.16 // indirect
+
+// 创建一个新的 Module
+// go mod init moduleName
+
+// 在 micro-go-course 目录下创建一个新的 Moudule
+// go mod init github.com/fufeng/thinking-in-go
+// output
+// go: creating new go.mod: module github.com/longjoy/micro-go-course
+
+// 推荐使用七牛云搭建的 GOPROXY，可以方便我们在开发中更好地拉取远程依赖包。
+// 在项目目录下执行以下命令即可配置新的 GOPROXY:
+// go env -w GOPROXY=https://goproxy.cn,direct
+
+// 项目需要引入 gorm 依赖连接 My SQL 数据库， 这时可以在项目目录下执行如下的 go get 命令
+// go get  github.com/jinzhu/gorm
+
+// 除了require(引入版本是 v1.9.16 的 gorm 依赖包),还存在 replace 和 exclude 关键字，它们分别用于替换依赖模块和忽略依赖模块。
+// 除了 go mod init，还有 go mod download 和 go mod tidy 两个 Go Modules 常用命令。
+// 其中，go mod download 命令可以在我们手动修改 go.mod 文件后，手动更新项目的依赖关系；
+// go mod tidy 与 go mod download 命令类似，但不同的是它会移除掉 go.mod 中没被使用的 require 模块。
+
+
+
+
+
+
+
+
+
+
+
+
+
