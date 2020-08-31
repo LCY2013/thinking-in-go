@@ -41,6 +41,7 @@ var (
 // MakeHttpHandler make http handler use mux
 func MakeHttpHandler(_ context.Context, endpoints *endpoint.UserEndpoints) http.Handler {
 	// 创建一个路由
+	//  mux 作为 HTTP 请求的路由和分发器，相比 Go 中原生态的 HTTP 路由包，mux 的路由代码可读性高、路由规则更清晰。
 	r := mux.NewRouter()
 
 	// 创建日志输出信息
@@ -81,6 +82,7 @@ func MakeHttpHandler(_ context.Context, endpoints *endpoint.UserEndpoints) http.
 // 编码响应的json信息
 func encodeJsonResponse(_ context.Context, writer http.ResponseWriter, response interface{}) error {
 	writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// 序列化返回的DTO对象 成JSON数据
 	return json.NewEncoder(writer).Encode(response)
 }
 
@@ -107,6 +109,7 @@ func decodeLoginRequest(_ context.Context, req *http.Request) (interface{}, erro
 		_ = req.Body.Close()
 	}
 
+	// 解析参数信息、封装一个LoginRequest 结构体给endpoint
 	return &endpoint.LoginRequest{
 		Email:    email,
 		Password: password,
@@ -123,6 +126,7 @@ func decodeRegisterRequest(_ context.Context, req *http.Request) (interface{}, e
 	if email == "" || username == "" || password == "" {
 		return req, ErrBadRequest
 	}
+	// 解析参数信息、封装一个RegisterRequest 结构体给endpoint
 	return &endpoint.RegisterRequest{
 		Email:    email,
 		Username: username,
@@ -144,6 +148,8 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 
 /*
 	测试流程如下:
-	1、curl -X POST http://127.0.0.1:9527/login\?email\=magic@fufeng.com\&password\=123456
-	2、curl -X POST http://127.0.0.1:9527/register\?email\=magic@fufeng.com\&password\=123456\&username\=fufeng
+		-H "Content-Type: application/json; charset=utf-8"
+		-H "Content-Type: application/x-www-form-urlencoded; charset=utf-8"
+	1、curl -X POST -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" "http://127.0.0.1:9527/login\?email\=magic@fufeng.com\&password\=123456"
+	2、curl -X POST -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" "http://127.0.0.1:9527/register\?email\=magic@fufeng.com\&password\=123456\&username\=fufeng"
 */
