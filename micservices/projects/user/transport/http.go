@@ -94,6 +94,7 @@ func decodeLoginRequest(_ context.Context, req *http.Request) (interface{}, erro
 		return req, ErrBadRequest
 	}
 
+	// 可以利用这里做json -> DTO
 	// 读取body信息
 	if req.Body != nil {
 		//包装bufio
