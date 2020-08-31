@@ -39,7 +39,7 @@ var (
 )
 
 // MakeHttpHandler make http handler use mux
-func MakeHttpHandler(ctx context.Context, endpoints *endpoint.UserEndpoints) http.Handler {
+func MakeHttpHandler(_ context.Context, endpoints *endpoint.UserEndpoints) http.Handler {
 	// 创建一个路由
 	r := mux.NewRouter()
 
@@ -79,7 +79,7 @@ func MakeHttpHandler(ctx context.Context, endpoints *endpoint.UserEndpoints) htt
 }
 
 // 编码响应的json信息
-func encodeJsonResponse(ctx context.Context, writer http.ResponseWriter, response interface{}) error {
+func encodeJsonResponse(_ context.Context, writer http.ResponseWriter, response interface{}) error {
 	writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	return json.NewEncoder(writer).Encode(response)
 }
@@ -131,7 +131,7 @@ func decodeRegisterRequest(_ context.Context, req *http.Request) (interface{}, e
 }
 
 // 创建一个error encode处理器
-func encodeError(ctx context.Context, err error, w http.ResponseWriter) {
+func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	switch err {
 	default:

@@ -62,7 +62,7 @@ func MakeUserServiceImpl(userDao dao.UserDao) UserService {
 	}
 }
 
-func (userService *UserServiceImpl) Login(ctx context.Context, email, password string) (*UserInfoDTO, error) {
+func (userService *UserServiceImpl) Login(_ context.Context, email, password string) (*UserInfoDTO, error) {
 	user, err := userService.userDao.SelectByEmail(email)
 	if err == nil {
 		if user.Password == password {
@@ -80,7 +80,7 @@ func (userService *UserServiceImpl) Login(ctx context.Context, email, password s
 	return nil, err
 }
 
-func (userService *UserServiceImpl) Register(ctx context.Context, vo *RegisterUserVo) (*UserInfoDTO, error) {
+func (userService *UserServiceImpl) Register(_ context.Context, vo *RegisterUserVo) (*UserInfoDTO, error) {
 	lock := redis.GetRedisLock(vo.Email, time.Duration(5)*time.Second)
 	err := lock.Lock()
 	if err != nil {
