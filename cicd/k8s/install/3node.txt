@@ -45,40 +45,44 @@ EOF
 systemctl stop firewalld & systemctl disable firewalld
 sed -i 's/^SELINUX=enforcing$/SELINUX=disabled/' /etc/selinux/config && setenforce 0
 
-#关闭swap
-swapoff -a
-yes | cp /etc/fstab /etc/fstab_bak
-cat /etc/fstab_bak |grep -v swap > /etc/fstab
+关闭swap
+# swapoff -a
+# yes | cp /etc/fstab /etc/fstab_bak
+# cat /etc/fstab_bak |grep -v swap > /etc/fstab
 
-#配置时间同步
+配置时间同步
 使用chrony同步时间，配置master节点与网络NTP服务器同步时间，所有node节点与master节点同步时间。
 配置master节点
-    #安装chrony：
-    yum install -y chrony
-    #注释默认ntp服务器
-    sed -i 's/^server/#&/' /etc/chrony.conf
-    #指定上游公共 ntp 服务器，并允许其他节点同步时间
-cat >> /etc/chrony.conf << EOF
+    安装chrony：
+    # yum install -y chrony
+    注释默认ntp服务器
+    # sed -i 's/^server/#&/' /etc/chrony.conf
+    指定上游公共 ntp 服务器，并允许其他节点同步时间
+# cat >> /etc/chrony.conf << EOF
 server 0.asia.pool.ntp.org iburst
 server 1.asia.pool.ntp.org iburst
 server 2.asia.pool.ntp.org iburst
 server 3.asia.pool.ntp.org iburst
 allow all
 EOF
-    #重启chronyd服务并设为开机启动：
-    systemctl enable chronyd && systemctl restart chronyd
-    #开启网络时间同步功能
-    timedatectl set-ntp true
+    重启chronyd服务并设为开机启动：
+    # systemctl enable chronyd && systemctl restart chronyd
+    开启网络时间同步功能
+    # timedatectl set-ntp true
+    更改当前时区为东8区【统一时区，亚洲上海】
+    # timedatectl set-timezone Asia/Shanghai
 配置所有node节点：
     (注意修改master IP地址)
-    #安装chrony：
-    yum install -y chrony
-    #注释默认服务器
-    sed -i 's/^server/#&/' /etc/chrony.conf
-    #指定内网 master节点为上游NTP服务器
-    echo server 192.168.99.120 iburst >> /etc/chrony.conf
-    #重启服务并设为开机启动：
-    systemctl enable chronyd && systemctl restart chronyd    
+    安装chrony：
+    # yum install -y chrony
+    注释默认服务器
+    # sed -i 's/^server/#&/' /etc/chrony.conf
+    指定内网 master节点为上游NTP服务器
+    # echo server 192.168.99.120 iburst >> /etc/chrony.conf
+    重启服务并设为开机启动：
+    # systemctl enable chronyd && systemctl restart chronyd
+    结果为^*则同步完成
+    # chronyc sources -v
 所有节点执行chronyc sources命令，查看存在以^*开头的行，说明已经与服务器时间同步    
 
 #加载ipvs相关模块
@@ -159,8 +163,8 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.99.120:6443 --token ef704e.9zzqknc3c7l9cuf2 \
-    --discovery-token-ca-cert-hash sha256:cf3f568b3157d25b0f47d2adc019e13c931c83a5ec852c52e61309bd3fe82e1a
+kubeadm join 192.168.99.120:6443 --token iqvttf.bh82wt455vecnkx0 \
+    --discovery-token-ca-cert-hash sha256:dc44a71b5bb598f60eb16eef40ce6930022709b85a209961d5984d8f9e1f0c3b
 初始化过程说明：
 [preflight] kubeadm 执行初始化前的检查。
 [kubelet-start] 生成kubelet的配置文件”/var/lib/kubelet/config.yaml”
@@ -192,18 +196,22 @@ kubectl 是管理 Kubernetes Cluster 的命令行工具，前面我们已经在�
 Kubernetes 支持多种网络方案，这里我们使用 flannel
 # kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 # kubectl get pod -n kube-system -o wide
-可以看到，所有的系统 Pod 都成功启动了，而刚刚部署的flannel网络插件则在 kube-system 下面新建了一个名叫kube-flannel-ds-amd64-lkf2f的 Pod，一般来说，这些 Pod 就是容器网络插件在每个节点上的控制组件。
-Kubernetes 支持容器网络插件，使用的是一个名叫 CNI 的通用接口，它也是当前容器网络的事实标准，市面上的所有容器网络开源项目都可以通过 CNI 接入 Kubernetes，比如 Flannel、Calico、Canal、Romana 等等，它们的部署方式也都是类似的“一键部署”。
+可以看到，所有的系统 Pod 都成功启动了，而刚刚部署的flannel网络插件则在 kube-system 下面新建了一个名叫kube-flannel-ds-amd64-lkf2f的 Pod，
+一般来说，这些 Pod 就是容器网络插件在每个节点上的控制组件。
+Kubernetes 支持容器网络插件，使用的是一个名叫 CNI 的通用接口，它也是当前容器网络的事实标准，
+市面上的所有容器网络开源项目都可以通过 CNI 接入 Kubernetes，比如 Flannel、Calico、Canal、Romana 等等，
+它们的部署方式也都是类似的“一键部署”。
 # kubectl get nodes
-至此，Kubernetes 的 Master 节点就部署完成了。如果你只需要一个单节点的 Kubernetes，现在你就可以使用了。不过，在默认情况下，Kubernetes 的 Master 节点是不能运行用户 Pod 的。
+至此，Kubernetes 的 Master 节点就部署完成了。如果你只需要一个单节点的 Kubernetes，现在你就可以使用了。
+不过，在默认情况下，Kubernetes 的 Master 节点是不能运行用户 Pod 的。
 
 部署worker节点
 Kubernetes 的 Worker 节点跟 Master 节点几乎是相同的，它们运行着的都是一个 kubelet 组件。
 唯一的区别在于，在 kubeadm init 的过程中，kubelet 启动后，Master 节点上还会自动运行 
 kube-apiserver、kube-scheduler、kube-controller-manger 这三个系统 Pod。
 增加node到集群里
-# kubeadm join 192.168.99.120:6443 --token sr15qf.88c0v0kh0lmkdzy2 \
-      --discovery-token-ca-cert-hash sha256:0a789d654e45c5283fe75554580c8c51ebc73de66a975eff16070e6b110c691a
+# kubeadm join 192.168.99.120:6443 --token iqvttf.bh82wt455vecnkx0 \
+      --discovery-token-ca-cert-hash sha256:dc44a71b5bb598f60eb16eef40ce6930022709b85a209961d5984d8f9e1f0c3b
 如果执行kubeadm init时没有记录下加入集群的命令，可以通过以下命令重新创建
 # kubeadm token create --print-join-command
 
@@ -250,8 +258,8 @@ nodes状态全部为ready，由于每个节点都需要启动若干组件，如�
 输入nslookup nginx查看是否可以正确解析出集群内的IP，以验证DNS是否正常
 # curl http://nginx/
 分别访问一下2个Pod的内网IP，验证跨Node的网络通信是否正常
-# ping 10.244.2.3
-# ping 10.244.1.3
+# curl 10.244.2.3
+# curl 10.244.1.3
 
 Pod调度到Master节点
 出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。查看Taints字段默认配置：
@@ -269,18 +277,37 @@ Pod调度到Master节点
 地址: https://github.com/kubernetes/dashboard
 下载官方的yaml文件:
 # wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.3/aio/deploy/recommended.yaml
-修改两个地方
-第一个是修改镜像,kubernetes-dashboard.yaml配置文件112行
- 90 # ------------------- Dashboard Deployment ------------------- #
- 91  92 kind: Deployment 93 apiVersion: apps/v1 94 metadata: 95 labels: 96 k8s-app: kubernetes-dashboard 97 name: kubernetes-dashboard 98 namespace: kube-system 99 spec:100 replicas: 1101 revisionHistoryLimit: 10102 selector:103 matchLabels:104 k8s-app: kubernetes-dashboard105 template:106 metadata:107 labels:108 k8s-app: kubernetes-dashboard109 spec:110 containers:111 - name: kubernetes-dashboard112 #image: k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1113 image: mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.0114 ports:115 - containerPort: 8443116 protocol: TCP
-第二个是添加一个type,指定端口类型为 NodePort，这样外界可以通过地址 nodeIP:nodePort 访问 dashboard,kubernetes-dashboard.yaml配置文件158行:
-
-148 # ------------------- Dashboard Service ------------------- #
-149 150 kind: Service151 apiVersion: v1152 metadata:153 labels:154 k8s-app: kubernetes-dashboard155 name: kubernetes-dashboard156 namespace: kube-system157 spec:158 type: NodePort159 ports:160 - port: 443161 targetPort: 8443162 selector:163 k8s-app: kubernetes-dashboard
+具体搭建可以查看: https://www.cnblogs.com/yy690486439/p/13597400.html
+修改如下内容:
+spec:
+  type: NodePort #增加
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 31000 #增加
 
 部署到k8s集群
 # kubectl apply -f recommended.yaml
-# kubectl get pods -n kube-system |grep dashboardkubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 98s# kubectl get pods,svc -n kube-systemNAME READY STATUS RESTARTS AGEpod/coredns-78d4cf999f-5hcjm 1/1 Running 0 3h21mpod/coredns-78d4cf999f-6mlql 1/1 Running 0 3h21mpod/etcd-k8sm-218 1/1 Running 0 3h20mpod/kube-apiserver-k8sm-218 1/1 Running 0 3h19mpod/kube-controller-manager-k8sm-218 1/1 Running 0 3h20mpod/kube-flannel-ds-amd64-6kfhg 1/1 Running 0 3h13mpod/kube-flannel-ds-amd64-c4fr4 1/1 Running 0 152mpod/kube-flannel-ds-amd64-qhc2w 1/1 Running 0 151mpod/kube-proxy-7hntq 1/1 Running 0 151mpod/kube-proxy-b4txb 1/1 Running 0 3h21mpod/kube-proxy-bz529 1/1 Running 0 152mpod/kube-scheduler-k8sm-218 1/1 Running 0 3h20mpod/kubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 3m5sNAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGEservice/kube-dns ClusterIP 10.96.0.10 <none> 53/UDP,53/TCP 3h21mservice/kubernetes-dashboard NodePort 10.104.4.26 <none> 443:31667/TCP 3m5s
+# kubectl get pods -n kubernetes-dashboard -o wide
+kubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 98s
+# kubectl get pods,svc -n kubernetes-dashboard -o wide
+NAME READY STATUS RESTARTS AGE
+pod/coredns-78d4cf999f-5hcjm 1/1 Running 0 3h21m
+pod/coredns-78d4cf999f-6mlql 1/1 Running 0 3h21m
+pod/etcd-k8sm-218 1/1 Running 0 3h20m
+pod/kube-apiserver-k8sm-218 1/1 Running 0 3h19m
+pod/kube-controller-manager-k8sm-218 1/1 Running 0 3h20m
+pod/kube-flannel-ds-amd64-6kfhg 1/1 Running 0 3h13m
+pod/kube-flannel-ds-amd64-c4fr4 1/1 Running 0 152m
+pod/kube-flannel-ds-amd64-qhc2w 1/1 Running 0 151m
+pod/kube-proxy-7hntq 1/1 Running 0 151m
+pod/kube-proxy-b4txb 1/1 Running 0 3h21m
+pod/kube-proxy-bz529 1/1 Running 0 152m
+pod/kube-scheduler-k8sm-218 1/1 Running 0 3h20m
+pod/kubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 3m5s
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
+service/kube-dns ClusterIP 10.96.0.10 <none> 53/UDP,53/TCP 3h21m
+service/kubernetes-dashboard NodePort 10.104.4.26 <none> 443:31667/TCP 3m5s
 通过https访问ui
 登录页
 
@@ -289,7 +316,9 @@ Token （令牌） 认证方式登录
 // 创建serviceaccount
 # kubectl create serviceaccount dashboard-serviceaccount -n kube-system
 // 创建clusterrolebinding
-# kubectl create clusterrolebinding dashboard-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-serviceaccount
+# kubectl create clusterrolebinding dashboard-cluster-admin \
+        --clusterrole=cluster-admin \
+        --serviceaccount=kube-system:dashboard-serviceaccount
 2）获取令牌（用于网页登录）
 // 查看口令列表
 # kubectl get secret -n kube-system |grep dashboard-serviceaccount-tokendashboard-serviceaccount-token-f45wg kubernetes.io/service-account-token 3 22s// 获取口令# kubectl describe secret dashboard-serviceaccount-token-f45wg -n kube-system
@@ -302,21 +331,32 @@ Token （令牌） 认证方式登录
 
 
 -----卸载k8s
+Clean up
+If you used disposable servers for your cluster, for testing, you can switch those off and do no further clean up. You can use kubectl config delete-cluster to delete your local references to the cluster.
+However, if you want to deprovision your cluster more cleanly, you should first drain the node and make sure that the node is empty, then deconfigure the node.
+Remove the node
+Talking to the control-plane node with the appropriate credentials, run:
+# kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
+Before removing the node, reset the state installed by kubeadm:
+# kubeadm reset
+The reset process does not reset or clean up iptables rules or IPVS tables. If you wish to reset iptables, you must do so manually:
+# iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+If you want to reset the IPVS tables, you must run the following command:
+# ipvsadm -C
+Now remove the node:
+# kubectl delete node <node name>
+
 首先清理运行到k8s群集中的pod，使用
 # kubectl delete node --all
 然后从主机系统中删除数据卷和备份（如果不需要）。最后，可以使用脚本停止所有k8s服务，
 # for service in kube-apiserver kube-controller-manager kubectl kubelet kube-proxy kube-scheduler; do
       systemctl stop $service
   done
-卸载其他node
-# kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
-# kubectl delete node <node name>
-卸载服务
-# kubeadm reset
 删除rpm包
 # rpm -qa|grep kube*|xargs rpm --nodeps -e
 删除容器及镜像
 # docker images -qa|xargs docker rmi -f
+# docker ps -qa|xargs docker rm -f
 # rm -rf /etc/kubernetes
 删除相关k8s信息
 # find / -name ku*
@@ -325,24 +365,65 @@ Token （令牌） 认证方式登录
 
 
 在卸载K8s组件前，先执行kubeadm reset命令，清空K8s集群设置
-kubeadm reset
+# kubeadm reset
 卸载管理组件
-yum erase -y kubelet kubectl kubeadm kubernetes-cni
+# yum erase -y kubelet kubectl kubeadm kubernetes-cni
 
-kubeadm reset重置集群
-#在master节点之外的节点进行操作
-kubeadm reset
-systemctl stop kubelet
-systemctl stop docker
-rm -rf /var/lib/cni/
-rm -rf /var/lib/kubelet/*
-rm -rf /etc/cni/
-ifconfig cni0 down
-ifconfig flannel.1 down
-ifconfig docker0 down
-ip link delete cni0
-ip link delete flannel.1
-##重启kubelet
-systemctl restart kubelet
-##重启docker
-systemctl restart docker
+# netstat -nltp | grep kube
+
+# kubectl get cs
+
+# journalctl -u kube-controller-manager --since '2020-09-03 09:33:00'
+
+# kubectl create clusterrolebinding system-node-role-bound --clusterrole=system:kube-admin --group=cluster
+
+# netstat -lnpt|grep kube
+
+
+-------- 基于kubeadm安装集群踩坑记录 ----------
+https://www.jianshu.com/p/ed1ae8443fff
+重新安装后会存在kube-controller-manager和kube-scheduler启动端口和api-server监听的端口不一致的情况
+需要修改如下文件: 基本目录(/etc/kubernetes)
+    1、/etc/kubernetes/manifests/kube-controller-manager.yaml
+        注释掉--port=0 关闭监听非安全端口（http），同时 --address 参数无效，--bind-address 参数有效；
+        修改正确的端口号10252
+    2、/etc/kubernetes/manifests/kube-scheduler.yaml
+        注释掉--port=0 关闭监听非安全端口（http），同时 --address 参数无效，--bind-address 参数有效；
+        修改正确的端口号10251
+
+
+
+POD 无法跨界点通信:
+    node上分别执行
+    # iptables -P INPUT ACCEPT
+    # iptables -P FORWARD ACCEPT
+    # iptables -F
+    # iptables -L -n
+
+    采用kubeadm安装的时候，使用的命令并非默认命令
+        # kubeadm init --pod-network-cidr=10.222.0.0/16
+        K8S调度分发到每个NODE的时候分配的子网并不是默认的 10.244.0.0/16
+        # kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+        删除flannel组件
+        # kubectl delete -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+        将yml文件下载下来
+        # wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+        编辑yml中的net-conf.json字段，使其中的子网分配为你kubeadm初始化的子网地址
+        重新应用kubectl apply -f kube-flannel.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,101 @@
+1: 获取recommended.yaml文件
+https://github.com/kubernetes/dashboard/blob/master/aio/deploy/recommended.yaml
+2: 修改recommended.yaml文件
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort #增加
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 31000 #增加
+  selector:
+    k8s-app: kubernetes-dashboard
+---
+#因为自动生成的证书很多浏览器无法使用，所以我们自己创建，注释掉kubernetes-dashboard-certs对象声明
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  labels:
+#    k8s-app: kubernetes-dashboard
+#  name: kubernetes-dashboard-certs
+#  namespace: kubernetes-dashboard
+#type: Opaque
+---
+TODO:默认的Token失效时间是900秒,也就是每隔15分钟就要认证一次
+
+Token失效时间可以通过 token-ttl 参数来设置
+
+ports:
+- containerPort: 8443
+  protocol: TCP
+args:
+  - --auto-generate-certificates
+  - --token-ttl=43200
+
+
+3: 创建证书
+mkdir dashboard-certs
+cd dashboard-certs/
+#创建命名空间
+kubectl create namespace kubernetes-dashboard
+# 创建key文件
+openssl genrsa -out dashboard.key 2048
+#证书请求
+openssl req -days 36000 -new -out dashboard.csr -key dashboard.key -subj '/CN=dashboard-cert'
+#自签证书
+openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt
+#创建kubernetes-dashboard-certs对象
+kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kubernetes-dashboard
+4：创建dashboard
+
+kubectl create -f ~/recommended.yaml
+5：创建dashboard管理员
+
+　vim dashboard-admin.yaml
+
+复制代码
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: dashboard-admin
+  namespace: kubernetes-dashboard
+复制代码
+  kubectl create -f ./dashboard-admin.yaml
+
+6：为用户分配权限
+
+vim dashboard-admin-bind-cluster-role.yaml
+
+复制代码
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dashboard-admin-bind-cluster-role
+  labels:
+    k8s-app: kubernetes-dashboard
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: dashboard-admin
+  namespace: kubernetes-dashboard
+复制代码
+kubectl create -f ./dashboard-admin-bind-cluster-role.yaml
+
+9:查看用户Token
+
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}')
+10：打开dashboard
+
+浏览器https://ip:31000  选择token方式登录
