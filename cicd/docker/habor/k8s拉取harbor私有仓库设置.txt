@@ -1,0 +1,35 @@
+- K8S在默认情况下只能拉取Harbor仓库中的公有镜像，拉取私有镜像会报错：ErrImagePull 或 ImagePullBackOff
+出现这种问题，一般有两种解决办法：
+1）到 Harbor 仓库中把该镜像的项目设置成公开权限
+2）创建认证登录秘钥，在拉取镜像时带上该秘钥
+一、创建秘钥
+1）先在服务器上登录 Harbor 仓库：
+    docker login harborIP
+2）查看登录的秘钥数据：
+    登录成功后会在当前用户下生成 .docker/config.json 文件
+    # cat ~/.docker/config.json
+        {
+        	"auths": {
+        		"192.168.99.124": {
+        			"auth": "YWRtaW46MTIzNDU2"
+        		}
+        	},
+        	"HttpHeaders": {
+        		"User-Agent": "Docker-Client/19.03.12 (linux)"
+        	}
+        }
+    再对上面的 config.json 进行base64加密
+    # cat ~/.docker/config.json |base64 -w 0
+3）创建 secret.yaml 文件：
+apiVersion: v1
+kind: Secret
+metadata:
+  name: login
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSIxOTIuMTY4Ljk5LjEyNCI6IHsKCQkJImF1dGgiOiAiWVdSdGFXNDZNVEl6TkRVMiIKCQl9Cgl9LAoJIkh0dHBIZWFkZXJzIjogewoJCSJVc2VyLUFnZW50IjogIkRvY2tlci1DbGllbnQvMTkuMDMuMTIgKGxpbnV4KSIKCX0KfQ==
+    创建对象
+    kubectl create -f secret.yaml
+4）创建应用，拉取私有镜像：
+
+

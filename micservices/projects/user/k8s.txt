@@ -1,6 +1,6 @@
 - 创建user-service.yaml 定义
 user 服务的 main 函数中增加了 time.Sleep 延迟了 user 服务的启动,保证redis、mysql启动完成
-# kubectl crate -f user-service.yaml
+# kubectl create -f user-service.yaml
 查看pod(user-service) 情况
 # kubectl get pod user-service
 # kubectl exec -it user-service -n default -- /bin/bash
