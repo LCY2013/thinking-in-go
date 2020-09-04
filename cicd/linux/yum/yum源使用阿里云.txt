@@ -1,0 +1,18 @@
+yum -y install wget
+cd /etc/yum.repos.d/
+
+方式一:
+    阿里云
+    wget http://mirrors.aliyun.com/repo/Centos-7.repo
+    mv CentOS-Base.repo CentOS-Base.repo.bak
+    mv Centos-7.repo CentOS-Base.repo
+方式二:
+    阿里云：
+    wget -O CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    网易163：
+    wget -O CentOS-Base.repo http://mirrors.163.com/.help/CentOS7-Base-163.repo
+
+开始更新
+yum clean all
+yum makecache
+yum update -y

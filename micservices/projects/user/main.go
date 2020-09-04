@@ -27,6 +27,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 	"user/dao"
 	"user/endpoint"
 	"user/redis"
@@ -39,9 +40,13 @@ func main() {
 	var (
 		// 服务地址、服务名称
 		servicePort = flag.Int("service.port", 9527, "service port")
+		// waitTime = flag.Int("wait.time", 10, "wait time")
 	)
 
 	flag.Parse()
+
+	// 休眠等待redis和mysql的服务在pod中起来
+	time.Sleep(time.Second * 10)
 
 	ctx := context.Background()
 	errChan := make(chan error)

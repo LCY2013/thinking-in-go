@@ -1,0 +1,101 @@
+1、第一步需要安装docker、docker-compose
+yum install -y yum-utils device-mapper-persistent-data lvm2
+#yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum -y install docker-ce
+systemctl start docker
+
+curl -L https://github.com/docker/compose/releases/download/1.26.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+查看版本信息 docker-compose -v
+
+yum install epel-release -y
+yum install git -y
+
+2、下载harbor
+https://github.com/goharbor/harbor/releases/
+#tar -xf  harbor-offline-installer-v2.0.2.tgz  -C /usr/local/
+tar -xf  harbor-offline-installer-v2.0.2.tgz  -C /root/harbor/
+然后修改配置文件 harbor.yml
+    修改ip
+        hostname: 172.0.0.1
+    注释掉https
+        # https related config
+        #https:
+          # https port for harbor, default is 443
+          #port: 443
+          # The path of cert and key files for nginx
+          #certificate: /your/certificate/path
+          #private_key: /your/private/key/path
+    配置登录账号密码和目录
+        # Remember Change the admin password from UI after launching Harbor.
+        harbor_admin_password: 123456
+        # Harbor DB configuration
+        database:
+          # The password for the root user of Harbor DB. Change this before any production use.
+          password: 123456
+          # The maximum number of connections in the idle connection pool. If it <=0, no idle connections are retained.
+          max_idle_conns: 50
+          # The maximum number of open connections to the database. If it <= 0, then there is no limit on the number of open connections.
+          # Note: the default number of connections is 1024 for postgres of harbor.
+          max_open_conns: 1000
+
+#如果提示docker-compose版本不对，安装一个epel源 即可解决问题
+sh      prepare           #生成配置文件
+sh      install.sh        #启动容器
+两个脚本运行完毕没有报错信息即可说明安装成功
+
+检查容器状态是否都是up
+docker ps
+
+容器比较多有可能安装完容器有的容器启动不正常，网上给的解决办法是加入systemd
+日志路径为/var/log/harbor/
+
+vim  /etc/systemd/system/multi-user.target.wants/harbor.service
+[Unit]
+Description=Harbor
+After=docker.service systemd-networkd.service systemd-resolved.service
+Requires=docker.service
+Documentation=http://github.com/vmware/harbor
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5
+ExecStart=/usr/local/bin/docker-compose -f /usr/local/harbor/docker-compose.yml up
+ExecStop=/usr/local/bin/docker-compose -f /usr/local/harbor/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
+
+-------
+#路径为你安装目录
+ExecStart=/usr/local/bin/docker-compose -f /usr/local/harbor/docker-compose.yml up
+#路径为你安装目录
+ExecStop=/usr/local/bin/docker-compose -f /usr/local/harbor/docker-compose.yml down
+
+systemctl enable  harbor.service
+systemctl  start  harbor.service
+
+
+查看docker日志信息:
+    cat /var/log/docker
+
+--------mac virtualBox 安装问题---------
+? Error processing tar file(exit status 1): write /usr/bin/migrate: no space left on device?
+    进入 virtualBox安装目录 /Applications/VirtualBox.app/Contents/MacOS :
+    重新分配磁盘大小(20480m):
+        ./VBoxManage modifymedium  /Users/magicLuoMacBook/VirtualBox\ VMs/centos7-habor-124/centos7-k8s-master-124-disk1.vdi --resize 20480
+获取调整服务器docker参数信息:
+    1、调整docker服务端启动参数（调整含义可以看man docker文档解释），具体操作如下:
+        vi /etc/sysconfig/docker
+        ## 将 other_args = "" 更改为如下内容
+        other_args="-s=devicemapper --storage-opt dm.basesize=20G --storage-opt dm.loopmetadatasize=10G"
+    2、查看调整后的结果
+        # ps -ef | grep docker|grep -v grep
+            /usr/bin/docker -d  -s=devicemapper --storage-opt dm.basesize=60G --storage-opt dm.loopmetadatasize=10G
+        # docker images
+            REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+            tf/master           1.4                 db45227e3209        2 weeks ago         15.04 GB
+
+

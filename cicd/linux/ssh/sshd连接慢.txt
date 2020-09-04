@@ -1,0 +1,8 @@
+先备份/etc/ssh/sshd_config,备份命令为
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+1.su                                    (以root用户登录)
+2.vi /etc/ssh/sshd_config      (编辑配置文件)
+3.输入 / ,查找GSSAPIAuthentication 赋值为no
+4.输入 /，查找UseDNS,赋值为 no(该项默认不启用的，要把前面的#删除掉)
+5.最后输入!wq保存文件并退出
+6.重启systemctl restart sshd

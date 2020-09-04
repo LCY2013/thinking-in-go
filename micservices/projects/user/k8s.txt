@@ -1,0 +1,46 @@
+- 创建user-service.yaml 定义
+user 服务的 main 函数中增加了 time.Sleep 延迟了 user 服务的启动,保证redis、mysql启动完成
+# kubectl crate -f user-service.yaml
+查看pod(user-service) 情况
+# kubectl get pod user-service
+# kubectl exec -it user-service -n default -- /bin/bash
+
+- 单个 Pod 不具备自我恢复的能力，当 Pod 所在的 Node 出现问题，Pod 就很可能被删除，这就会导致 Pod 中容器提供的服务被终止。
+为了避免这种情况的发生，可以使用 Controller 来管理 Pod，Controller 提供创建和管理多个 Pod 的能力，
+从而使得被管理的 Pod 具备自愈和更新的能力。常见的 Controller 有以下几种：
+1、Replication Controller，确保用户定义的 Pod 副本数保持不变；
+2、ReplicaSet，是 RC 的升级版，在选择器（Selector）的支持上优于 RC，RC 只支持基于等式的选择器，
+    但 RS 还支持基于集合的选择器；
+3、Deployment，在 RS 的基础上提供了 Pod 的更新能力，在 Deployment 配置文件中 Pod template 发生变化时，
+    它能将现在集群的状态逐步更新成 Deployment 中定义的目标状态；
+4、StatefulSets，其中的 Pod 是有序部署和具备稳定的标识，是一组存在状态的 Pod 副本。
+
+- 接下来就是创建一个Deployment用于管理Pod user-service-deployment.yaml定义
+在上述配置中，我们指定了 kind 的类型为 Deployment、副本的数量为 3 和选择器为匹配标签 name: user-service。
+可以发现原来 Pod 的配置放到了 template 标签下，并添加 name: user-service 的标签，
+Deployment Controller 将会使用 template 下的 Pod 配置来创建 Pod 副本，并通过标签选择器来监控 Pod 副本的数量，
+当副本数不足时，将会根据 template 创建 Pod。
+# kubectl create -f user-service-deployment.yaml
+查看Deployment(user-service)情况
+# kubectl get deployment user-service
+Deployment Controller 默认使用 RollingUpdate 策略更新 Pod，也就是滚动更新的方式；
+另一种更新策略是 Recreate，创建出新的 Pod 之前会先杀掉所有已存在的 Pod，可以通过 spec.strategy.type 标签指定更新策略。
+Deployment 的 rollout 当且仅当 Deployment 的 Pod template 中的 label 更新或者镜像更改时被触发，
+比如我们希望更新 redis 的版本：
+# kubectl set image deployment/user-service redis=redis:6.0
+这将触发 user-service Pod 的重新更新部署。当 Pod 被 Deployment Controller 管理时，
+单独使用 kubectl delete pod 无法删除相关 Pod，Deployment Controller 会维持 Pod 副本数量不变，
+这时则需要通过 kubectl delete Deployment 删除相关 Deployment 配置，比如删除 user-service 的 Deployment 配置，
+如下命令所示:
+# kubectl delete Deployment user-service
+
+
+
+
+
+
+
+
+
+
+
