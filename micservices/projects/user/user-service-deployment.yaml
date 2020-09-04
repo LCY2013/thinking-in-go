@@ -13,16 +13,17 @@ spec:
       name: user-service
   template:
     metadata:
+      name: user-service
       labels:
         name: user-service
     spec:
-      containers:  # 定义user容器,开放9527端口
+      containers: # 定义user容器信息
         - name: user
-            image: 192.168.99.124/k8s-dev/user
-            ports:
-              - containerPort: 10086
-            imagePullPolicy: IfNotPresent
-        - name: mysql                     #定义MySQL容器，3306
+          image: 192.168.99.124/k8s-dev/user
+          ports:
+            - containerPort: 9527
+          imagePullPolicy: IfNotPresent
+        - name: mysql # 定义mysql容器信息
           image: 192.168.99.124/k8s-dev/mysql-for-user
           ports:
             - containerPort: 3306
@@ -30,8 +31,8 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               value: "123456"
           imagePullPolicy: IfNotPresent
-        - name: redis                     #定义Redis容器，开放6379端口
-          image: redis:5.0
+        - name: redis  # 定义redis容器信息
+          image: 'redis:5.0'
           lifecycle:
             postStart:
               exec:

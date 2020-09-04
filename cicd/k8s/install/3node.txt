@@ -278,56 +278,7 @@ Pod调度到Master节点
 下载官方的yaml文件:
 # wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.3/aio/deploy/recommended.yaml
 具体搭建可以查看: https://www.cnblogs.com/yy690486439/p/13597400.html
-修改如下内容:
-spec:
-  type: NodePort #增加
-  ports:
-    - port: 443
-      targetPort: 8443
-      nodePort: 31000 #增加
-
-部署到k8s集群
-# kubectl apply -f recommended.yaml
-# kubectl get pods -n kubernetes-dashboard -o wide
-kubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 98s
-# kubectl get pods,svc -n kubernetes-dashboard -o wide
-NAME READY STATUS RESTARTS AGE
-pod/coredns-78d4cf999f-5hcjm 1/1 Running 0 3h21m
-pod/coredns-78d4cf999f-6mlql 1/1 Running 0 3h21m
-pod/etcd-k8sm-218 1/1 Running 0 3h20m
-pod/kube-apiserver-k8sm-218 1/1 Running 0 3h19m
-pod/kube-controller-manager-k8sm-218 1/1 Running 0 3h20m
-pod/kube-flannel-ds-amd64-6kfhg 1/1 Running 0 3h13m
-pod/kube-flannel-ds-amd64-c4fr4 1/1 Running 0 152m
-pod/kube-flannel-ds-amd64-qhc2w 1/1 Running 0 151m
-pod/kube-proxy-7hntq 1/1 Running 0 151m
-pod/kube-proxy-b4txb 1/1 Running 0 3h21m
-pod/kube-proxy-bz529 1/1 Running 0 152m
-pod/kube-scheduler-k8sm-218 1/1 Running 0 3h20m
-pod/kubernetes-dashboard-6685cb584f-xlk2h 1/1 Running 0 3m5s
-NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
-service/kube-dns ClusterIP 10.96.0.10 <none> 53/UDP,53/TCP 3h21m
-service/kubernetes-dashboard NodePort 10.104.4.26 <none> 443:31667/TCP 3m5s
-通过https访问ui
-登录页
-
-Token （令牌） 认证方式登录
-1）授权 (所有 namespace )
-// 创建serviceaccount
-# kubectl create serviceaccount dashboard-serviceaccount -n kube-system
-// 创建clusterrolebinding
-# kubectl create clusterrolebinding dashboard-cluster-admin \
-        --clusterrole=cluster-admin \
-        --serviceaccount=kube-system:dashboard-serviceaccount
-2）获取令牌（用于网页登录）
-// 查看口令列表
-# kubectl get secret -n kube-system |grep dashboard-serviceaccount-tokendashboard-serviceaccount-token-f45wg kubernetes.io/service-account-token 3 22s// 获取口令# kubectl describe secret dashboard-serviceaccount-token-f45wg -n kube-system
-3）将获取到的token放在令牌里
-输入token
-
-4）登录成功
-至此，K8S集群+Dashboard搭建成功！
-
+------- kubernetes-dashboard 2.x 版本安装.txt
 
 
 -----卸载k8s
