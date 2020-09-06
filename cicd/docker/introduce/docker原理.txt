@@ -1,0 +1,103 @@
+容器使用的Linux 三大核心技术:
+1、Namespace、Cgroups 和 联合文件系统(UnionFS和AUFS)
+
+Linux chroot
+    chroot 是在 Unix 和 Linux 系统的一个操作，针对正在运作的软件行程和它的子进程，改变它外显的根目录。
+    一个运行在这个环境下，经由 chroot 设置根目录的程序，它不能够对这个指定根目录之外的文件进行访问动作，
+    不能读取，也不能更改它的内容。
+
+操作流程:
+    $ mkdir rootfs
+
+    方便演示，我使用现成的 busybox 镜像来创建一个系统
+    $ cd rootfs
+    $ docker export $(docker create busybox) -o busybox.tar
+    $ tar -xf busybox.tar
+
+    执行完上面的命令后，在 rootfs 目录下，我们会得到一些目录和文件,使用 ls 命令查看一下 rootfs 目录下的内容。
+    $ ls
+    bin  busybox.tar  dev  etc  home  proc  root  sys  tmp  usr  var
+
+    使用以下命令，可以启动一个 sh 进程，并且把 /home/centos/rootfs 作为 sh 进程的根目录
+    $ chroot /home/centos/rootfs /bin/sh
+    / # ./bin/ls .
+    bin          busybox.tar  dev          etc          home         proc         root         sys          tmp          usr          var
+
+    这里可以看到当前进程的根目录已经变成了主机上的 /home/centos/rootfs 目录。这样就实现了当前进程与主机的隔离。到此为止，一个目录隔离的容器就完成了。
+    此时还不能称之为一个容器，为什么呢？你可以在上一步（使用 chroot 启动命令行窗口）执行以下命令，查看如下路由信息：
+    / # ./bin/ip route
+    default via 10.0.2.2 dev enp0s3  metric 100
+    default via 192.168.99.1 dev enp0s8  metric 101
+    10.0.2.0/24 dev enp0s3 scope link  src 10.0.2.15  metric 100
+    172.17.0.0/16 dev docker0 scope link  src 172.17.0.1
+    192.168.99.0/24 dev enp0s8 scope link  src 192.168.99.120  metric 101
+    执行 ip route 命令后，你可以看到网络信息并没有隔离，实际上进程等信息此时也并未隔离。要想实现一个完整的容器，
+    我们还需要 Linux 的其他三项技术： Namespace、Cgroups 和联合文件系统。
+
+Docker 是利用 Linux 的 Namespace 、Cgroups 和联合文件系统三大机制来保证实现的，
+所以它的原理是使用 Namespace 做主机名、网络、PID 等资源的隔离，使用 Cgroups 对进程或者进程组做资源
+（例如：CPU、内存等）的限制，联合文件系统用于镜像构建和容器运行环境。
+1、Namespace
+    Namespace 是 Linux 内核的一项功能，该功能对内核资源进行隔离，使得容器中的进程都可以在单独的命名空间中运行，
+并且只可以访问当前容器命名空间的资源。Namespace 可以隔离进程 ID、主机名、用户 ID、文件名、网络访问和进程间通信等相关资源。
+    Docker 主要用到以下五种命名空间。
+        pid namespace：用于隔离进程 ID。
+        net namespace：隔离网络接口，在虚拟的 net namespace 内用户可以拥有自己独立的 IP、路由、端口等。
+        mnt namespace：文件系统挂载点隔离。
+        ipc namespace：信号量,消息队列和共享内存的隔离。
+        uts namespace：主机名和域名的隔离。
+2、Cgroups
+  Cgroups 是一种 Linux 内核功能，可以限制和隔离进程的资源使用情况（CPU、内存、磁盘 I/O、网络等）。
+在容器的实现中，Cgroups 通常用来限制容器的 CPU 和内存等资源的使用。
+
+3、联合文件系统
+  联合文件系统，又叫 UnionFS，是一种通过创建文件层进程操作的文件系统，因此，联合文件系统非常轻快。
+Docker 使用联合文件系统为容器提供构建层，使得容器可以实现写时复制以及镜像的分层构建和存储。
+常用的联合文件系统有 AUFS、Overlay 和 Devicemapper 等。
+
+docker 核心组件:
+    -rwxr-xr-x 1 root root 27941976 Dec 12  2020 containerd
+    -rwxr-xr-x 1 root root  4964704 Dec 12  2020 containerd-shim
+    -rwxr-xr-x 1 root root 15678392 Dec 12  2020 ctr
+    -rwxr-xr-x 1 root root 50683148 Dec 12  2020 docker
+    -rwxr-xr-x 1 root root   764144 Dec 12  2020 docker-init
+    -rwxr-xr-x 1 root root  2837280 Dec 12  2020 docker-proxy
+    -rwxr-xr-x 1 root root 54320560 Dec 12  2020 dockerd
+    -rwxr-xr-x 1 root root  7522464 Dec 12  2020 runc
+Docker 的两个至关重要的组件：runC和containerd。
+    runC是 Docker 官方按照 OCI 容器运行时标准的一个实现。通俗地讲，runC 是一个用来运行容器的轻量级工具，
+是真正用来运行容器的。
+    containerd是 Docker 服务端的一个核心组件，它是从dockerd中剥离出来的 ，它的诞生完全遵循 OCI 标准，
+是容器标准化后的产物。containerd通过 containerd-shim 启动并管理 runC，可以说containerd真正管理了容器的生命周期。
+
+Docker 各组件之间的关系?
+    通过以下命令来启动一个 busybox 容器：
+    $ docker run -d busybox sleep 3600
+    容器启动后，通过以下命令查看一下 dockerd 的 PID：
+    $ sudo ps aux |grep dockerd
+    root     12899  0.0  0.0 112828   980 pts/0    S+   10:36   0:00 grep --color=auto dockerd
+    下面使用 pstree 命令查看一下进程父子关系：
+    $ pstree -l -a -A 12899
+    containerd-shim─┬─sleep
+                    └─9*[{containerd-shim}]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

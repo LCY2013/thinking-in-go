@@ -1,0 +1,115 @@
+Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
+    1、Namespace 技术则是用来修改进程视图的主要方法。
+        首先创建一个容器
+        $ docker run -it busybox /bin/sh
+        / # ps
+        PID   USER     TIME  COMMAND
+            1 root      0:00 /bin/sh
+            6 root      0:00 ps
+            可以看到，我们在 Docker 里最开始执行的 /bin/sh，就是这个容器内部的第 1 号进程（PID=1），而这个容器里一共只有两个进程在运行。
+        可实际上，他们在宿主机的操作系统里，还是原来的第 100 号进程。这就是Linux 中的Namespace机制。
+            它其实只是 Linux 创建新进程的一个可选参数。在 Linux 系统中创建线程的系统调用是 clone()，比如：
+            int pid = clone(main_function, stack_size, SIGCHLD, NULL);
+            当我们用 clone() 系统调用创建一个新进程时，就可以在参数中指定 CLONE_NEWPID 参数，比如：
+            int pid = clone(main_function, stack_size, CLONE_NEWPID | SIGCHLD, NULL);
+            新创建的这个进程将会“看到”一个全新的进程空间，在这个进程空间里，它的 PID 是 1。之所以说“看到”，是因为这只是一个"障眼法"
+            除了上面的PID Namespace，Linux 操作系统还提供了 Mount、UTS、IPC、Network 和 User 这些 Namespace，用来对各种不同的进程上下文进行"障眼法"操作。
+    2、Linux Cgroups 的全称是 Linux Control Group。它最主要的作用，就是限制一个进程组能够使用的资源上限，包括 CPU、内存、磁盘、网络带宽等等。
+        在 Linux 中，Cgroups 给用户暴露出来的操作接口是文件系统，即它以文件和目录的方式组织在操作系统的 /sys/fs/cgroup 路径下。
+        $ mount -t cgroup
+        ...
+        cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,memory)
+        cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,net_prio,net_cls)
+        cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,pids)
+        cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,cpuacct,cpu)
+        cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,cpuset)
+        cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,blkio)
+        ...
+        对 CPU 子系统来说，我们就可以看到如下几个配置文件，这个指令是：
+        $ ls /sys/fs/cgroup/cpu
+        cgroup.clone_children  cgroup.procs          cpuacct.stat   cpuacct.usage_percpu  cpu.cfs_quota_us  cpu.rt_runtime_us  cpu.stat  notify_on_release  system.slice  user.slice
+        cgroup.event_control   cgroup.sane_behavior  cpuacct.usage  cpu.cfs_period_us     cpu.rt_period_us  cpu.shares         docker    release_agent      tasks
+        cfs_period 和 cfs_quota 这样的关键词。这两个参数需要组合使用，可以用来限制进程在长度为 cfs_period 的一段时间内，只能被分配到总量为 cfs_quota 的 CPU 时间。
+        这样的配置文件又如何使用呢？
+        你需要在对应的子系统下面创建一个目录，比如，我们现在进入 /sys/fs/cgroup/cpu 目录下：
+        $ cd /sys/fs/cgroup/cpu
+        $ mkdir container
+        $ ls container
+        cgroup.clone_children  cgroup.event_control  cgroup.procs  cpuacct.stat  cpuacct.usage  cpuacct.usage_percpu  cpu.cfs_period_us  cpu.cfs_quota_us  cpu.rt_period_us  cpu.rt_runtime_us  cpu.shares  cpu.stat  notify_on_release  tasks
+        这里的container就是一个控制组，操作系统会在你新创建的 container 目录下，自动生成该子系统对应的资源限制文件。
+        这时我们在后台执行一个脚本:
+        $ while : ; do : ; done &
+        [1] 1881
+        $ top
+        1847 root      20   0  115544    588    172 R 100.0  0.0   0:08.95 bash
+        可以看到cpu被打满
+        查看 container 目录下的文件，看到 container 控制组里的 CPU quota 还没有任何限制（即：-1），CPU period 则是默认的 100 ms（100000 us）：
+        $ cat /sys/fs/cgroup/cpu/container/cpu.cfs_quota_us
+        -1
+        $ cat /sys/fs/cgroup/cpu/container/cpu.cfs_period_us
+         100000
+        接下来，我们可以通过修改这些文件的内容来设置限制。
+        向 container 组里的 cfs_quota 文件写入 20 ms（20000 us）：
+        $ echo 20000 > /sys/fs/cgroup/cpu/container/cpu.cfs_quota_us
+        它意味着在每 100 ms 的时间里，被该控制组限制的进程只能使用 20 ms 的 CPU 时间，也就是说这个进程只能使用到 20% 的 CPU 带宽。
+        接下来，我们把被限制的进程的 PID 写入 container 组里的 tasks 文件，上面的设置就会对该进程生效了：
+        $ echo 1881 > /sys/fs/cgroup/cpu/container/tasks
+        1881 root      20   0  115748    592    156 R  20.0  0.0   0:14.78 bash
+        可以看到，计算机的 CPU 使用率立刻降到了 20%（%Cpu0 : 20.3 us）。
+        除 CPU 子系统外，Cgroups 的每一项子系统都有其独有的资源限制能力，比如：
+        blkio，为块设备I/O 限制，一般用于磁盘等设备；
+        cpuset，为进程分配单独的 CPU 核和对应的内存节点；
+        memory，为进程设定内存使用的限制。
+        docker为每个容器创建一个控制组（即创建一个新目录），然后在启动容器进程之后，把这个进程的 PID 填写到对应控制组的 tasks 文件中就可以了。
+        用户执行 docker run 时的参数指定了，比如这样一条命令：
+        $ docker run -it --cpu-period=100000 --cpu-quota=20000 ubuntu /bin/bash
+        在启动这个容器后，我们可以通过查看 Cgroups 文件系统下，CPU 子系统中，“docker”这个控制组里的资源限制文件的内容来确认
+        $ cat /sys/fs/cgroup/cpu/docker/5d5c9f67d/cpu.cfs_period_us
+        100000
+        $ cat /sys/fs/cgroup/cpu/docker/5d5c9f67d/cpu.cfs_quota_us
+        20000
+        查询到/sys/fs/cgroup/cpu目录 docker下面容器id相关信息
+        $ cat /sys/fs/cgroup/cpu/docker/f0574a46a6641ba6247720820ae5c0ac960620aefc37cb25dbe9ae87989b5b3a/cpu.cfs_period_us
+        100000
+        $ cat /sys/fs/cgroup/cpu/docker/f0574a46a6641ba6247720820ae5c0ac960620aefc37cb25dbe9ae87989b5b3a/cpu.cfs_quota_us
+        20000
+        这就意味着这个 Docker 容器，只能使用到 20% 的 CPU 带宽。
+        Linux 下的 /proc 目录存储的是记录当前内核运行状态的一系列特殊文件，用户可以通过访问这些文件，查看系统以及当前正在运行的进程的信息，
+        比如 CPU 使用情况、内存占用率等，这些文件也是 top 指令查看系统信息的主要数据来源。如果在容器里执行 top 指令，就会发现，
+        它显示的信息居然是宿主机的 CPU 和内存数据，而不是当前容器的数据。
+        修复容器中的 top 指令以及 /proc 文件系统中的信息呢? lxcfs
+
+    3、Namespace 示例演示、代码位置ns.c
+        在 main 函数里，通过 clone() 系统调用创建了一个新的子进程 container_main，并且声明要为它启用 Mount Namespace（即：CLONE_NEWNS 标志）。
+        子进程执行的，是一个“/bin/bash”程序，也就是一个 shell。所以这个 shell 就运行在了 Mount Namespace 的隔离环境中。
+        编译代码:
+        $ gcc -o ns ns.c
+        $ ./ns
+        Parent - start a container!
+        Container - inside the container!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
