@@ -1,5 +1,5 @@
 Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
-    1、Namespace 技术则是用来修改进程视图的主要方法。
+   1、Namespace 技术则是用来修改进程视图的主要方法。
         首先创建一个容器
         $ docker run -it busybox /bin/sh
         / # ps
@@ -15,7 +15,7 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
             新创建的这个进程将会“看到”一个全新的进程空间，在这个进程空间里，它的 PID 是 1。之所以说“看到”，是因为这只是一个"障眼法"
             除了上面的PID Namespace，Linux 操作系统还提供了 Mount、UTS、IPC、Network 和 User 这些 Namespace，用来对各种不同的进程上下文进行"障眼法"操作。
 
-    2、Linux Cgroups 的全称是 Linux Control Group。它最主要的作用，就是限制一个进程组能够使用的资源上限，包括 CPU、内存、磁盘、网络带宽等等。
+   2、Linux Cgroups 的全称是 Linux Control Group。它最主要的作用，就是限制一个进程组能够使用的资源上限，包括 CPU、内存、磁盘、网络带宽等等。
         在 Linux 中，Cgroups 给用户暴露出来的操作接口是文件系统，即它以文件和目录的方式组织在操作系统的 /sys/fs/cgroup 路径下。
         $ mount -t cgroup
         ...
@@ -80,7 +80,7 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
         它显示的信息居然是宿主机的 CPU 和内存数据，而不是当前容器的数据。
         修复容器中的 top 指令以及 /proc 文件系统中的信息呢? lxcfs
 
-    3、Namespace 示例演示、代码位置ns.c
+   3、Namespace 示例演示、代码位置ns.c
         在 main 函数里，通过 clone() 系统调用创建了一个新的子进程 container_main，并且声明要为它启用 Mount Namespace（即：CLONE_NEWNS 标志）。
         子进程执行的，是一个“/bin/bash”程序，也就是一个 shell。所以这个 shell 就运行在了 Mount Namespace 的隔离环境中。
         编译代码:
@@ -135,7 +135,7 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
         3、切换进程的根目录（Change Root）。
         Docker 项目在最后一步的切换上会优先使用 pivot_root 系统调用，如果系统不支持，才会使用 chroot。
         chroot 只包含操作系统的文件、配置、目录等信息，不包含内核，内核还是和宿主机同用一个。
-    4、Docker镜像设计
+   4、Docker镜像设计
     Docker 在镜像的设计中，引入了层（layer）的概念。也就是说，用户制作镜像的每一步操作，都会生成一个层，也就是一个增量 rootfs。
     这里利用到了一个叫做联合文件系统(Union File System)，其主要的功能就是将不同位置的目录挂载(mount)到同一个目录中,示例如下:
     目前的目录结构如下: 需要将A、B目录挂载到C目录中
@@ -271,7 +271,7 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
     /root/unionfs/B=ro
     容器部署的项目依赖Linux 内核版本那么这个就不能够跨平台
 
-    5、Docker 项目另一个重要的内容：Volume（数据卷）
+   5、Docker 项目另一个重要的内容：Volume（数据卷）
     解决的问题: Volume 机制，允许你将宿主机上指定的目录或者文件，挂载到容器里面进行读取和修改操作。
     docker 提供两种将宿主机目录挂载到容器目录(/demo)中:
         $ docker run -v /demo ...
@@ -302,7 +302,10 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
             查看docker容器可读可写层的数据
             $ ll /var/lib/docker/overlay2/f1b8dc77e7748588dbb8e1eff0e8a48d3ad3a4b31d708b46074bf00e651921d6/diff/demo
             该目录下没有任何东西，说明容器中的demo目录不存在任何修改，只是宿主机中的目录存在两个文件，所以docker commit 也不会提交到挂载的目录信息
-            
+
+   6、docker容器技术的主要两个层面
+        1、一组联合挂载在 /var/lib/docker/aufs/mnt 上的 rootfs，这一部分我们称为“容器镜像”（Container Image），是容器的静态视图；
+        2、一个由 Namespace+Cgroups 构成的隔离环境，这一部分我们称为“容器运行时”（Container Runtime），是容器的动态视图。
 
 
 

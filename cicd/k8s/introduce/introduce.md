@@ -20,6 +20,9 @@ Kubernetes 将基础设施抽象，简化了应用开发、部署和运维等工
         4、Kube-proxy: 负责为 Pod 提供代理，为 Service 提供集群内部的服务发现和负载均衡，Service 可以看作一组提供相同服务的 Pod 的对外访问接口
 ```
 
+#### 创建yaml文件部署nginx nginx-deployment.yaml
+运行nginx deployment
+$ kubectl create -f nginx-deployment.yaml
 
 
 
