@@ -17,6 +17,11 @@ int container_main(void* arg)
 {
   printf("Container - inside the container!\n");
   execv(container_args[0], container_args);
+  // 如果物理机挂载类型是shared，那么需要重新挂载根目录
+  // mount("","/",NULL,"MS_PRIVATE","")
+  // 通过重新挂载/tmp目录去覆盖Mount Namespace中挂载内容与宿主机一样的问题
+  // tmpfs 内存盘格式
+  mount("none","/tmp","tmpfs",0,"")
   printf("Something's wrong!\n");
   return 1;
 }

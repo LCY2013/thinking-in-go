@@ -14,6 +14,7 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
             int pid = clone(main_function, stack_size, CLONE_NEWPID | SIGCHLD, NULL);
             新创建的这个进程将会“看到”一个全新的进程空间，在这个进程空间里，它的 PID 是 1。之所以说“看到”，是因为这只是一个"障眼法"
             除了上面的PID Namespace，Linux 操作系统还提供了 Mount、UTS、IPC、Network 和 User 这些 Namespace，用来对各种不同的进程上下文进行"障眼法"操作。
+
     2、Linux Cgroups 的全称是 Linux Control Group。它最主要的作用，就是限制一个进程组能够使用的资源上限，包括 CPU、内存、磁盘、网络带宽等等。
         在 Linux 中，Cgroups 给用户暴露出来的操作接口是文件系统，即它以文件和目录的方式组织在操作系统的 /sys/fs/cgroup 路径下。
         $ mount -t cgroup
@@ -87,6 +88,189 @@ Linux 容器技术的两大技术Namespace 、Cgroups(Linux Controller group):
         $ ./ns
         Parent - start a container!
         Container - inside the container!
+        这里我们就进入该程序模拟的容器 shell环境 进入/tmp目录后
+        $ cd /tmp
+        $ ls -l
+        systemd-private-83abf19841fa442b826e558d83ea3214-chronyd.service-L56X7J
+        这里说明开启了 Mount Namespace，容器进程看到的文件系统也跟宿主机完全一样。
+        所以我们需要在创建进程的时候重新挂载/tmp目录:
+        ns.c需要修改进程启动函数信息 : mount("none","/tmp","tmpfs",0,"")
+        然后重新编译执行后查看就没有了/tmp
+        $ gcc -o ns ns.c
+        $ ./ns
+        Parent - start a container!
+        Container - inside the container!
+        $ ls
+        这个时候可以用mount命令查看tmpfs挂载的目录有哪些:
+        $ mount -l | grep tmpfs
+        ...
+        none on /tmp type tmpfs (rw,relatime,seclabel)
+        ...
+        这里可以想到Mount Namespace 挂载的是宿主机的根目录，所以需要重新挂载整个根目录，所以这里就有一个Linux下的命令chroot
+        (change root file system)可以将某一个目录改变成为根目录的作用,测试流程如下:
+        $ mkdir -p $HOME/testRootFs
+        $ mkdir -p $HOME/testRootFs/{bin,lib64,lib}
+        把 bash 命令拷贝到 testRootFs 目录对应的 bin 路径下
+        $ cp -v /bin/{bash,ls} $HOME/testRootFs/bin
+        把 bash 命令需要的所有 so 文件，也拷贝到 testRootFs 目录对应的 lib 路径下。找到 so 文件可以用 ldd 命令:
+        $ T=$HOME/testRootFs
+        $ echo $T
+        $ list="$(ldd /bin/ls | egrep -o '/lib*.*\.[0-9]')"
+        $ echo $list
+        $ for i in $list ; do cp -v "$i" "$T$i" ; done
+        最后执行chroot指令，将$HOME/testRootFs 设置为根目录
+        $ chroot $HOME/testRootFs /bin/bash
+        如果抛出so文件找不到就find该文件的位置，将其copy到对应的lib目录就行
+        bash-4.2# ./bin/ls .
+        bin  lib  lib64
+        这里就可以看到是挂载的当前设置的目录为根目录，所以有了chroot命令，它其实改善了Mount Namespace的问题，我们可以在
+        某个目录中装载操作系统的所有文件就可以模拟一个完整的操作系统。这里所谓的容器镜像其实就是一个rootfs(根文件系统)。
+        一个常见的rootfs通常包含下面几个目录:
+        $ docker run -it busybox /bin/sh
+        / # ls
+        bin   dev   etc   home  proc  root  sys   tmp   usr   var
+        总结: Docker 项目核心原理就是给用户创建一个特定进程(设置Namespace、cgroups、联合文件系统(AUfs))
+        1、启用 Linux Namespace 配置；
+        2、设置指定的 Cgroups 参数；
+        3、切换进程的根目录（Change Root）。
+        Docker 项目在最后一步的切换上会优先使用 pivot_root 系统调用，如果系统不支持，才会使用 chroot。
+        chroot 只包含操作系统的文件、配置、目录等信息，不包含内核，内核还是和宿主机同用一个。
+    4、Docker镜像设计
+    Docker 在镜像的设计中，引入了层（layer）的概念。也就是说，用户制作镜像的每一步操作，都会生成一个层，也就是一个增量 rootfs。
+    这里利用到了一个叫做联合文件系统(Union File System)，其主要的功能就是将不同位置的目录挂载(mount)到同一个目录中,示例如下:
+    目前的目录结构如下: 需要将A、B目录挂载到C目录中
+    .
+    ├── A
+    │   ├── a.txt
+    │   └── x.txt
+    ├── B
+    │   ├── b.txt
+    │   └── x.txt
+    └── C
+    $ mount -t aufs -o dirs=./A:./B none ./C
+        mount: 未知的文件系统类型“aufs”
+        这个时候可以查看当前操作系统支持的文件系统类型
+        $ cat /proc/filesystems
+        nodev	sysfs
+        nodev	rootfs
+        nodev	ramfs
+        nodev	bdev
+        nodev	proc
+        nodev	cgroup
+        nodev	cpuset
+        nodev	tmpfs
+        nodev	devtmpfs
+        nodev	debugfs
+        nodev	securityfs
+        nodev	sockfs
+        nodev	dax
+        nodev	bpf
+        nodev	pipefs
+        nodev	configfs
+        nodev	devpts
+        nodev	hugetlbfs
+        nodev	autofs
+        nodev	pstore
+        nodev	mqueue
+        nodev	selinuxfs
+            xfs
+        nodev	overlay
+        nodev	binfmt_misc
+        可以看到没有aufs，需要自己安装aufs
+         进入repo目录
+        $ cd /etc/yum.repos.d
+         下载文件
+        $ wget https://yum.spaceduck.org/kernel-ml-aufs/kernel-ml-aufs.repo
+         安装
+        $ yum install kernel-ml-aufs -y
+
+        $ vi /etc/default/grub
+        # 修改参数, 表示启动时选择第一个内核
+        ###################################
+        GRUB_DEFAULT=0
+        ###################################
+        GRUB_DEFAULT为saved，saved表示下次启动时默认启动上次的内核，这里我们需要更改GRUB_DEFAULT=0, 表示启动时选择第一个内核
+
+         重新生成grub.cfg
+        $ grub2-mkconfig -o /boot/grub2/grub.cfg
+
+         重启计算机
+        $ reboot
+
+        再次查看文件系统支持的类型
+        $ cat /proc/filesystems
+        nodev	sysfs
+        nodev	tmpfs
+        nodev	bdev
+        nodev	proc
+        nodev	cgroup
+        nodev	cgroup2
+        nodev	cpuset
+        nodev	devtmpfs
+        nodev	configfs
+        nodev	debugfs
+        nodev	tracefs
+        nodev	securityfs
+        nodev	sockfs
+        nodev	pipefs
+        nodev	ramfs
+        nodev	hugetlbfs
+        nodev	devpts
+        nodev	autofs
+        nodev	aufs     --这里存在了
+        nodev	mqueue
+        nodev	selinuxfs
+        nodev	pstore
+            xfs
+        nodev	overlay
+    $ mount -t aufs -o dirs=./A:./B none ./C
+    mount: 文件系统类型错误、选项错误、none 上有坏超级块、
+           缺少代码页或助手程序，或其他错误
+
+           有些情况下在 syslog 中可以找到一些有用信息- 请尝试
+           dmesg | tail  这样的命令看看。
+    -- xino doesn't support /tmp/.aufs.xino(xfs)
+    如果还存在问题可以查看https://lists.debian.org/debian-live/2009/12/msg00173.html
+    $ mount -t aufs -o noxino,noatime,dirs=./A:./B none ./C
+    可以看出其中x.txt 内容为A目录中的x.txt内容，它就是一个从上向下查询，查询到了就使用该文件，所有上层的内容可以覆盖下层的内容。
+
+    docker使用 AUFS 存在的路径/var/lib/docker/aufs/diff/<layer_id>
+    $ docker image inspect ubuntu:latest
+    ...
+    "RootFS": {
+        "Type": "layers",
+        "Layers": [
+            "sha256:2ce3c188c38d7ad46d2df5e6af7e7aed846bc3321bdd89706d5262fefd6a3390",
+            "sha256:ad44aa179b334bbf4aeb61ecef978c3c77a3bb27cb28bcb727f5566d7f085b31",
+            "sha256:35a91a75d24be7ff9c68ce618dcc933f89fef502a59becac8510dbc3bf7a4a05",
+            "sha256:a4399aeb9a0e1ddf9da712ef222fd66f707a8c7205ed2607c9c8aac0dbabe882"
+        ]
+    }
+    ...
+    总共有四层
+    这个信息记录在 AuFS 的系统目录 /sys/fs/aufs 下面。
+    /var/lib/docker/aufs/diff/6e3be5d2ecccae7cc...=rw
+    /var/lib/docker/aufs/diff/6e3be5d2ecccae7cc...-init=ro+wh
+    /var/lib/docker/aufs/diff/32e8e20064858c0f2...=ro+wh
+    /var/lib/docker/aufs/diff/2b8858809bce62e62...=ro+wh
+    /var/lib/docker/aufs/diff/20707dce8efc0d267...=ro+wh
+    /var/lib/docker/aufs/diff/72b0744e06247c7d0...=ro+wh
+    /var/lib/docker/aufs/diff/a524a729adadedb90...=ro+wh
+    ubuntu 上面的分层信息是:
+        容器层-rw(读写): 这里就是rootfs增量信息存在的地方，这里就是删除文件，比如要删除一个a文件就会存在一个叫 .wh.a 的文件
+        init ro+wh(只读+whiteout): Init 层是 Docker 项目单独生成的一个内部层，专门用来存放 /etc/hosts、/etc/resolv.conf 等信息。
+        镜像层-ro+wh(只读+whiteout): 不可被修改的
+    通过上面几层信息可以构建一个完成的unbuntu镜像，每一层就是一个layer(就是一个rootfs)，最后通过union fs构建在一起。组成一个完整的镜像。
+
+    查看AUfs挂载记录的位置
+    $ cat /proc/mounts | grep aufs
+    none /root/unionfs/C aufs rw,noatime,si=a146650fe3705c31,noxino 0 0
+    找到si=a146650fe3705c31这个信息，用这个si值去/sys/fs/aufs就可以查询到对应的信息
+    $ cat /sys/fs/aufs/si_a146650fe3705c31/br[0-9]*
+    /root/unionfs/A=rw
+    /root/unionfs/B=ro
+    容器部署的项目依赖Linux 内核版本那么这个就不能够跨平台
+
 
 
 
