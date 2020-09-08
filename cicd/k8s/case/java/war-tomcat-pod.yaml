@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: javaweb-2
+spec:
+  initContainers:
+    - image: warImageName:v2
+      name: war
+      command: ["cp", "/demo.war", "/app"]
+      volumeMounts:
+        - mountPath: /app
+          name: app-volume
+  containers:
+    - image: tomcat:9.0.37
+      name: tomcat
+      command: ["sh","-c","/usr/local/tomcat/bin/start.sh"]
+      volumeMounts:
+        - mountPath: /usr/local/tomcat/webapps
+          name: app-volume
+      ports:
+        - containerPort: 8080
+          hostPort: 8001
+  volumes:
+    - name: app-volume
+      emptyDir: {}
