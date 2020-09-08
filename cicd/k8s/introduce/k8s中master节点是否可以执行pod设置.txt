@@ -1,0 +1,51 @@
+----------Taint/Toleration 调整 Master 执行 Pod 的策略--------------
+    原理：一旦某个节点被加上了一个 Taint，即被“打上了污点”，那么所有 Pod 就都不能在这个节点上运行，因为 Kubernetes 的 Pod 都有“洁癖”。
+        除非，有个别的 Pod 声明自己能“容忍”这个“污点”，即声明了 Toleration，它才可以在这个节点上运行。
+
+    节点打上"污点"（Taint）的命令是：
+    $ kubectl taint nodes [nodeName] foo=bar:NoSchedule
+    该 node1 节点上就会增加一个键值对格式的 Taint，即：foo=bar:NoSchedule。其中值里面的 NoSchedule，
+    意味着这个 Taint 只会在调度新 Pod 时产生作用，而不会影响已经在 node1 上运行的 Pod，哪怕它们没有 Toleration。
+
+    Pod 如何声明 Toleration ?
+    要在 Pod 的.yaml 文件中的 spec 部分，加入 tolerations 字段即可：
+    apiVersion: v1
+    kind: Pod
+    ...
+    spec:
+      tolerations:
+      - key: "foo"
+        operator: "Equal"
+        value: "bar"
+        effect: "NoSchedule"
+    Toleration 的描述意味着这个 Pod 能"容忍"所有键值对为 foo=bar 的 Taint（ operator: "Equal"，"等于"操作）。
+
+    $ kubectl describe node k8sm-120
+    Name:               k8sm-120
+    Roles:              master
+    Labels:             beta.kubernetes.io/arch=amd64
+                        beta.kubernetes.io/os=linux
+                        kubernetes.io/arch=amd64
+                        kubernetes.io/hostname=k8sm-120
+                        kubernetes.io/os=linux
+                        node-role.kubernetes.io/master=
+    这里的Master 节点默认被加上了node-role.kubernetes.io/master:NoSchedule这样一个"污点"，其中"键"是node-role.kubernetes.io/master，而没有提供"值"。
+    此时，就需要像下面这样用"Exists"操作符（operator: "Exists"，"存在"即可）来说明，该 Pod 能够容忍所有以 foo 为键的 Taint，才能让这个 Pod 运行在该 Master 节点上：
+    apiVersion: v1
+    kind: Pod
+    ...
+    spec:
+      tolerations:
+      - key: "foo"
+        operator: "Exists"
+        effect: "NoSchedule"
+    如果你就是想要一个单节点的 Kubernetes，就需要删除这个 Taint:
+    $ kubectl taint nodes --all node-role.kubernetes.io/master-
+    在"node-role.kubernetes.io/master"这个键后面加上了一个短横线"-"，这个格式就意味着移除所有以"node-role.kubernetes.io/master"为键的 Taint。
+
+
+
+
+
+
+

@@ -1,5 +1,6 @@
 1: 获取recommended.yaml文件
 https://github.com/kubernetes/dashboard/blob/master/aio/deploy/recommended.yaml
+
 2: 修改recommended.yaml文件
 ---
 kind: Service
@@ -53,11 +54,11 @@ openssl req -days 36000 -new -out dashboard.csr -key dashboard.key -subj '/CN=da
 openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt
 #创建kubernetes-dashboard-certs对象
 kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kubernetes-dashboard
+
 4：创建dashboard
-
 kubectl create -f ~/recommended.yaml
-5：创建dashboard管理员
 
+5：创建dashboard管理员
 　vim dashboard-admin.yaml
 
 复制代码
@@ -94,8 +95,7 @@ subjects:
 kubectl create -f ./dashboard-admin-bind-cluster-role.yaml
 
 9:查看用户Token
-
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}')
-10：打开dashboard
 
+10：打开dashboard
 浏览器https://ip:31000  选择token方式登录

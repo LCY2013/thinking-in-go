@@ -1,0 +1,105 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+   cephVersion:
+     image: ceph/ceph:v15.2.4
+     allowUnsupported: false
+   dataDirHostPath: /var/lib/rook
+   skipUpgradeChecks: false
+   mon:
+     count: 2   # 存储节点
+     allowMultiplePerNode: false
+   dashboard:
+     enabled: true
+     ssl: true
+   monitoring:
+     enabled: false
+     rulesNamespace: rook-ceph
+   network:
+     hostNetwork: false
+   rbdMirroring:
+     workers: 0
+   placement:				#配置特定节点亲和力保证Node作为存储节点
+ #    all:
+ #      nodeAffinity:
+ #        requiredDuringSchedulingIgnoredDuringExecution:
+ #          nodeSelectorTerms:
+ #          - matchExpressions:
+ #            - key: role
+ #              operator: In
+ #              values:
+ #              - storage-node
+ #      tolerations:
+ #      - key: storage-node
+ #        operator: Exists
+     mon:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+           nodeSelectorTerms:
+           - matchExpressions:
+             - key: ceph-mon
+               operator: In
+               values:
+               - enabled
+       tolerations:
+       - key: ceph-mon
+         operator: Exists
+     ods:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+           nodeSelectorTerms:
+           - matchExpressions:
+             - key: ceph-osd
+               operator: In
+               values:
+               - enabled
+       tolerations:
+       - key: ceph-osd
+         operator: Exists
+     mgr:
+       nodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+           nodeSelectorTerms:
+           - matchExpressions:
+             - key: ceph-mgr
+               operator: In
+               values:
+               - enabled
+       tolerations:
+       - key: ceph-mgr
+         operator: Exists
+   annotations:
+   resources:
+   removeOSDsIfOutAndSafeToRemove: false
+   storage:
+     useAllNodes: false			#关闭使用所有Node
+     useAllDevices: false		#关闭使用所有设备
+     deviceFilter: sda
+     config:
+         metadataDevice:
+         databaseSizeMB: "1024"
+         journalSizeMB: "1024"
+     nodes:
+     - name: "k8s-121"			#指定存储节点主机
+       config:
+         storeType: bluestore	#指定类型为裸磁盘
+       devices:
+       - name: "sda"			    #指定磁盘为sdb
+     - name: "k8s-122"
+       config:
+         storeType: bluestore
+       devices:
+       - name: "sdb"
+     - name: "k8snode03"
+       config:
+         storeType: bluestore
+       devices:
+       - name: "sdb"
+   disruptionManagement:
+     managePodBudgets: false
+     osdMaintenanceTimeout: 30
+     manageMachineDisruptionBudgets: false
+     machineDisruptionBudgetNamespace: openshift-machine-api

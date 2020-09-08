@@ -265,12 +265,24 @@ Pod调度到Master节点
 出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。查看Taints字段默认配置：
 # kubectl describe node k8sm-120
 
+部署存储插件rook
+$ kubectl taint node k8sm-120 node-role.kubernetes.io/master="":NoSchedule
+$ kubectl label nodes {k8s-121,k8s-122} ceph-osd=enabled
+$ kubectl label nodes {k8s-121,k8s-122} ceph-mon=enabled
+提示：当前版本rook中mgr只能支持一个节点运行
+$ kubectl label nodes k8s-121 ceph-mgr=enabled
 
-
-
-
-
-
+地址: https://github.com/rook/rook 可以在这里手动下载operator.yaml、cluster.yaml、common.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/common.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/operator.yaml
+文档 参考<cluster.yaml>
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/cluster.yaml
+查看rook相关pod
+$ kubectl get pods -n rook-ceph
+强制删除 namespace  rook-ceph
+$ kubectl get namespace rook-ceph -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+            | kubectl replace --raw /api/v1/namespaces/rook-ceph/finalize -f -
 
 
 部署webui dashboard
