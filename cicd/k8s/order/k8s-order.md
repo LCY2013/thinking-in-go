@@ -280,7 +280,7 @@ kubernetes如何解决这样的问题?
             workingDir（容器的工作目录）
             Ports（容器要开发的端口）
             volumeMounts（容器要挂载的 Volume）
-            ImagePullPolicy（拉取策略，默认是 Always）：
+            ImagePullPolicy（拉取策略，老版本默认是 Always, 新版本默认是IfNotPresent ）：https://kubernetes.io/docs/concepts/containers/images/
                 always： 每次创建 Pod 都重新拉取一次镜像
                 Never或者IfNotPresent： Pod 永远不会主动拉取这个镜像，或者只在宿主机上不存在这个镜像时才拉取。
             Lifecycle：Container Lifecycle Hooks 的作用，是在容器状态发生变化时触发一系列“钩子”。
@@ -302,8 +302,82 @@ kubernetes如何解决这样的问题?
     它们主要用于描述造成当前 Status 的具体原因是什么。 比如，Pod 当前的 Status 是 Pending，对应的 Condition 是 Unschedulable，这就意味着它的调度出现了问题。   
     $GOPATH/src/k8s.io/kubernetes/vendor/k8s.io/api/core/v1/types.go 里，type Pod struct ，尤其是 PodSpec 部分的内容。争取做到下次看到一个 Pod 的 YAML 文件时，不再需要查阅文档，就能做到把常用字段及其作用信手拈来。
         
-                   
-
+#### Pod中重要字段 Volume
+   特殊的 Volume，叫作 Projected Volume，你可以把它翻译为“投射数据卷”。
+        注意：Projected Volume 是 Kubernetes v1.11 之后的新特性
+     在 Kubernetes 中，有几种特殊的 Volume，它们存在的意义不是为了存放容器里的数据，也不是用来进行容器和宿主机之间的数据交换。
+   这些特殊 Volume 的作用，是为容器提供预先定义好的数据。所以，从容器的角度来看，这些 Volume 里的信息就是仿佛是被 Kubernetes“投射”（Project）进入容器当中的。 
+   目前Kubernetes 支持的 Projected Volume 一共有四种：
+       1、Secret: 把 Pod 想要访问的加密数据，存放到 Etcd 中，然后就可以通过在 Pod 的容器里挂载 Volume 的方式，访问到这些 Secret 里保存的信息了。
+            secret 最典型的使用场景，莫过于存放数据库的 Credential 信息，如下:
+              mysql-secret.yaml中 这个 Pod 中，定义了一个简单的容器,它声明挂载的 Volume，并不是常见的 emptyDir 或者 hostPath 类型，
+            而是 projected 类型。而这个 Volume 的数据来源（sources），则是名为 user 和 pass 的 Secret 对象，分别对应的是数据库的用户名和密码。
+            这里用到的数据库的用户名、密码，正是以 Secret 对象的方式交给 Kubernetes 保存的。完成这个操作的指令，如下所示:
+            $ cat ./username.txt
+             root
+            $ cat ./password.txt
+             123456
+             创建两个secret对象user、pass，分别用来存储username.txt，password.txt信息
+            $ kubectl create secret generic user --from-file=./username.txt
+            $ kubectl create secret generic pass --from-file=./password.txt
+             如何获取已经创建的secret信息?
+            $ kubectl get secrets  
+            $ kubectl get secrets  -o yaml  # 以yaml的形式查看
+             查看secret的详细信息
+            $ kubectl describe secret user
+              Name:         user
+              Namespace:    default
+              Labels:       <none>
+              Annotations:  <none>
+              Type:  Opaque
+              Data
+              ====
+              username.txt:  5 bytes 
+                通过编写yaml文件来生成secret API对象,具体查看secret-create.yaml。
+                通过编写 YAML 文件创建出来的 Secret 对象只有一个。但它的 data 字段，却以 Key-Value 的格式保存了两份 Secret 数据。
+            其中，“user”就是第一份数据的 Key，“pass”是第二份数据的 Key。
+                需要注意的是，Secret 对象要求这些数据必须是经过 Base64 转码的，以免出现明文密码的安全隐患。
+            这个转码操作也很简单，比如： 
+              $ echo -n 'root' | base64
+                cm9vdA==
+              $ echo -n '123456' | base64
+                MTIzNDU2
+             删除secret
+            $ kubectl delete secret user
+            $ kubectl delete secret pass
+            利用secret-create.yaml创建一个secret 对象
+            $ kubectl apply -f secret-create.yaml
+            接下来利用mysql-secret.yaml创建这个pod
+            $ kubectl create -f mysql-secret.yaml
+            登陆容器查看信息
+            $ kubectl exec -it test-projected-volume -- /bin/sh
+              / # ls -l projected-volume/
+              total 0
+              lrwxrwxrwx    1 root     root            19 Sep  9 06:39 password.txt -> ..data/password.txt
+              lrwxrwxrwx    1 root     root            19 Sep  9 06:39 username.txt -> ..data/username.txt 
+              / # cat projected-volume/password.txt 
+              123456
+              / # cat projected-volume/username.txt 
+              root
+            通过挂载方式进入到容器里的 Secret，一旦其对应的 Etcd 里的数据被更新，这些 Volume 里的文件内容，同样也会被更新。其实，这是 kubelet 组件在定时维护这些 Volume。  
+       2、ConfigMap
+                与 Secret 类似的是 ConfigMap，它与 Secret 的区别在于，ConfigMap 保存的是不需要加密的、应用所需的配置信息。
+            而 ConfigMap 的用法几乎与 Secret 完全相同：你可以使用 kubectl create configmap 从文件或者目录创建 ConfigMap，也可以直接编写 ConfigMap 对象的 YAML 文件。
+            例子: 一个 Java 应用所需的配置文件（.properties 文件），就可以通过下面这样的方式保存在 ConfigMap 里：
+            # 编辑一个properties文件信息,内容如下
+            $ cat > ui.properties
+            color.good=purple
+            color.bad=yellow
+            allow.textmode=true
+            how.nice.to.look=fairlyNice
+            # 利用properties文件创建一个Configmap
+            $ kubectl create configmap ui-config --from-file=./ui.properties
+            # 以yaml的形式输出configmap API对象中的内容
+            $ kubectl get configmap ui-config -o yaml
+       3、Downward API
+                让 Pod 里的容器能够直接获取到这个 Pod API 对象本身的信息。
+                
+       4、ServiceAccountToken
 
 
 

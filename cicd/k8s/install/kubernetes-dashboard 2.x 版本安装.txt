@@ -59,6 +59,7 @@ kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.k
 kubectl create -f ~/recommended.yaml
 
 5：创建dashboard管理员
+
 　vim dashboard-admin.yaml
 
 复制代码
@@ -69,8 +70,8 @@ metadata:
     k8s-app: kubernetes-dashboard
   name: dashboard-admin
   namespace: kubernetes-dashboard
-复制代码
-  kubectl create -f ./dashboard-admin.yaml
+
+ kubectl create -f ./dashboard-admin.yaml
 
 6：为用户分配权限
 
@@ -96,6 +97,10 @@ kubectl create -f ./dashboard-admin-bind-cluster-role.yaml
 
 9:查看用户Token
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}')
+
+token:
+    eyJhbGciOiJSUzI1NiIsImtpZCI6InFaeHpBZEhVYnFra2U3d0V2SHBXcnNsU2ZPc2VuN1JBN1pzSmVNYVk0djgifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJkYXNoYm9hcmQtYWRtaW4tdG9rZW4tbHNicWgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGFzaGJvYXJkLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMzdiNmZkN2QtNDdiMC00MGIzLWJlYTYtOTc2YWExOTdjNmYwIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmVybmV0ZXMtZGFzaGJvYXJkOmRhc2hib2FyZC1hZG1pbiJ9.nFeY2iWVOA9hLHkZXno0j5ffjKhwF68KjGoStCXIBOREU6FBZWSA011WckZXzjry8Myhb4OwTYOZ2nsm-RZbdc6-xDwCEg-pwSCXHYq2IZ8jps6irjEiJX4bvek3iK1Oe7oYdUhYhgSVQdjDawqroq6nkf3R6XdRq2bd4DVqs0CwVl1fPLOAhqdJF7YXG4ZKExJ8BC6EeXMRMWsyFgdDitu-n1hgfNy3THpnHxqHuynC_TZMXgQVG-_Gw-UCV8P3MtMauN-iElF2qZC-LOYgVkhAmG-4gMedcltTiPT2FsjOOmBMDCldzP4GacxF_rYmJFmVjaAgz7Cssf_7sfRfTw
+
 
 10：打开dashboard
 浏览器https://ip:31000  选择token方式登录
