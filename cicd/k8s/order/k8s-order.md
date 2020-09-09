@@ -1,3 +1,4 @@
+### 所有*.yaml文件位置cicd/k8s/case
 #### 查看k8s集群 master (ComponentStatus)组件状态
 kubectl get cs
 
@@ -37,9 +38,11 @@ kubernetes中使用一种API对象(Deployment)去控制另一种API对象(Pod)�
     labels字段就是由一组组的key-value 标签组成,他是我们用来筛选对象的主要依据,本例中这个Deployment对象被创建后就会携带一个app:nginx标签,通过这个标签来保证只有两个的pod。
   过滤的字段设置就在spec.selector.matchLabels(Label Selector)。
     另一个metadata中的字段annotations是用来携带key-value格式的内部信息(就是k8s自身感兴趣的东西,而不是用户感兴趣),大多数的annotations都是在k8s运行过程中加在API对象身上的。
+    
 API对象主要描述信息:
     1、metadata: 存放API对象的元信息,所有API对象基本统一。
     2、spc: API对象的独有定义,用来描述它所要表达的功能。
+    3、status: Pending、Running、Succeeded、Failed、Unknown
     
 获取匹配标签app:nginx的所有pod    
 $ kubectl get pods -l app=nginx     
@@ -206,9 +209,100 @@ kubernetes如何解决这样的问题?
     Pod 的另一个重要特性是，它的所有容器都共享同一个 Network Namespace。这就使得很多与 Pod 网络相关的配置和管理，
         也都可以交给 sidecar 完成，而完全无须干涉用户容器。这里最典型的例子莫过于 Istio 这个微服务治理项目了。
 
-
-
-
+### pod 重要概念
+ 理解pod: Pod 看成传统环境里的“机器”、把容器看作是运行在这个"机器"里的"用户程序",
+            凡是调度、网络、存储，以及安全相关的属性，基本上是 Pod 级别的。
+        这些属性的共同特征是，它们描述的是“机器”这个整体，而不是里面运行的“程序”。
+        比如，配置这个“机器”的网卡（即：Pod 的网络定义），配置这个“机器”的磁盘（即：Pod 的存储定义），
+        配置这个“机器”的防火墙（即：Pod 的安全定义）。更不用说，这台“机器”运行在哪个服务器之上（即：Pod 的调度）。
+        
+ pod主要字段含义和用法: 
+   1、NodeSelector：是一个供用户将 Pod 与 Node 进行绑定的字段，示例如下:
+      apiVersion: v1
+      kind: Pod
+      ...
+      spec:
+       nodeSelector:
+         disktype: ssd
+      含义: 这个pod只能运行在带有"disktype:ssd"标签(Label)的节点上,否则它的调度就会失败。     
+      
+   2、NodeName：一旦 Pod 的这个字段被赋值，Kubernetes 项目就会被认为这个 Pod 已经经过了调度，
+      调度的结果就是赋值的节点名字。所以，这个字段一般由调度器负责设置，但用户也可以设置它来“骗过”调度器，
+      当然这个做法一般是在测试或者调试的时候才会用到。
+      
+   3、HostAliases：定义了 Pod 的 hosts 文件（比如 /etc/hosts）里的内容，用法如下：
+       apiVersion: v1
+       kind: Pod
+       ...
+       spec:
+         hostAliases:
+         - ip: "10.1.2.3"
+           hostnames:
+           - "foo.remote"
+           - "bar.remote"
+       ...
+       上面这个pod中的yaml设置了一组IP和hostname,这样这个pod启动后/etc/hosts内容如下:
+       # cat /etc/hosts
+       ...
+       10.1.2.3 foo.remote
+       10.1.2.3 bar.remote
+       ...
+       注意: 设置pod网络一定要通过这种方式而不是在pod内部添加host信息,否则在pod被删除重建后,kubelet会覆盖掉被修改的内容。 
+    举例如下:
+        凡是跟容器的 Linux Namespace 相关的属性，也一定是 Pod 级别的。这个原因也很容易理解：Pod 的设计，
+        就是要让它里面的容器尽可能多地共享 Linux Namespace，仅保留必要的隔离和限制能力。
+        这样，Pod 模拟出的效果，就跟虚拟机里程序间的关系非常类似了。
+     例子一: 
+      创建一个share-nginx-busybox.yaml文件,这个文件里面"shareProcessNamespace: true"就是说容器共享PID namespace。
+      里面还定义了两个容器(nginx,busybox),其中busybox开启了tty(-t)和stdin(-i),tty就是linux提供给用户的常驻小程序,stdin就是一个linux中的标准输入。
+       启动Pod
+      $ kubectl apply -f share-nginx-busybox.yaml
+       使用kubectl attach 连接pod容器
+      $ kubectl attach -it nginx -c shell   
+      / # ps ax
+      PID   USER     TIME  COMMAND
+          1 root      0:00 /pause
+          6 root      0:00 nginx: master process nginx -g daemon off;
+         33 101       0:00 nginx: worker process
+         34 root      0:00 sh
+         39 root      0:00 ps ax
+      可以看到里面有nginx容器的进程信息,以及 Infra 容器的 /pause 进程,所有可以看到整个pod中的容器进程信息(共享同一个PID Namespace)。   
+     例子二:
+       凡是 Pod 中的容器要共享宿主机的 Namespace，也一定是 Pod 级别的定义，创建一个share-nginx-vm.yaml文件,
+       里面 hostNetwork: true,hostIPC: true,hostPID: true,就会直接使用宿主机的网络、直接与宿主机的IPC通信、可以查看宿主机的进程信息。
+     
+   4、containers
+        "containers"字段也是Pod中的一个重要概念，除此之外还有"Init Containers"，这两个字段都属于 Pod 对容器的定义，
+     内容也完全相同，只是 Init Containers 的生命周期，会先于所有的 Containers，并且严格按照定义的顺序执行。
+        containers: 
+            Image（镜像）
+            Command（启动命令）
+            workingDir（容器的工作目录）
+            Ports（容器要开发的端口）
+            volumeMounts（容器要挂载的 Volume）
+            ImagePullPolicy（拉取策略，默认是 Always）：
+                always： 每次创建 Pod 都重新拉取一次镜像
+                Never或者IfNotPresent： Pod 永远不会主动拉取这个镜像，或者只在宿主机上不存在这个镜像时才拉取。
+            Lifecycle：Container Lifecycle Hooks 的作用，是在容器状态发生变化时触发一系列“钩子”。
+                示例查看：nginx-lifecycle.yaml
+                    postStart 指的是，在容器启动后，立刻执行一个指定的操作。需要明确的是，postStart 定义的操作，
+                虽然是在 Docker 容器 ENTRYPOINT 执行之后，但它并不严格保证顺序。也就是说，在 postStart 启动时，ENTRYPOINT 有可能还没有结束。
+                当然，如果 postStart 执行超时或者错误，Kubernetes 会在该 Pod 的 Events 中报出该容器启动失败的错误信息，导致 Pod 也处于失败的状态。 
+                    preStop 发生的时机，则是容器被杀死之前（比如，收到了 SIGKILL 信号）。而需要明确的是，preStop 操作的执行，是同步的。
+                所以，它会阻塞当前的容器杀死流程，直到这个 Hook 定义操作完成之后，才允许容器被杀死，这跟 postStart 不一样。
+ pod中另一个重要字段(status):
+    pod.status.phase，就是 Pod 的当前状态，它有如下几种可能的情况：
+        1、Pending: 这个状态意味着，Pod 的 YAML 文件已经提交给了 Kubernetes，API 对象已经被创建并保存在 Etcd 当中。
+                  但是，这个 Pod 里有些容器因为某种原因而不能被顺利创建。比如，调度不成功。
+        2、Running: 这个状态下，Pod 已经调度成功，跟一个具体的节点绑定。它包含的容器都已经创建成功，并且至少有一个正在运行中。
+        3、Succeeded: 这个状态意味着，Pod 里的所有容器都正常运行完毕，并且已经退出了。这种情况在运行一次性任务时最为常见。
+        4、Failed: 这个状态下，Pod 里至少有一个容器以不正常的状态（非 0 的返回码）退出。这个状态的出现，意味着你得想办法 Debug 这个容器的应用，比如查看 Pod 的 Events 和日志。
+        5、Unknown: 这是一个异常状态，意味着 Pod 的状态不能持续地被 kubelet 汇报给 kube-apiserver，这很有可能是主从节点（Master 和 Kubelet）间的通信出现了问题。
+    Pod 对象的 Status 字段，还可以再细分出一组 Conditions。这些细分状态的值包括：PodScheduled、Ready、Initialized，以及 Unschedulable。
+    它们主要用于描述造成当前 Status 的具体原因是什么。 比如，Pod 当前的 Status 是 Pending，对应的 Condition 是 Unschedulable，这就意味着它的调度出现了问题。   
+    $GOPATH/src/k8s.io/kubernetes/vendor/k8s.io/api/core/v1/types.go 里，type Pod struct ，尤其是 PodSpec 部分的内容。争取做到下次看到一个 Pod 的 YAML 文件时，不再需要查阅文档，就能做到把常用字段及其作用信手拈来。
+        
+                   
 
 
 
