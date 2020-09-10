@@ -521,9 +521,32 @@ kubernetes如何解决这样的问题?
                  这里有一个问题：如果你定义了同时作用于一个 Pod 对象的多个 PodPreset，会发生什么呢？
                  实际上，Kubernetes 项目会帮你合并（Merge）这两个 PodPreset 要做的修改。而如果它们要做的修改有冲突的话，这些冲突字段就不会被修改。
             
-            
-
-           
+### 编排
+   控制器模式之Deployment,案例 - nginx-deployment.yaml
+     定义了控制app=nginx 标签的 Pod 的个数，永远等于 spec.replicas 指定的个数，即 2 个。
+     这就意味着，如果在这个集群中，携带 app=nginx 标签的 Pod 的个数大于 2 的时候，就会有旧的 Pod 被删除；反之，就会有新的 Pod 被创建。
+   
+   kubernetes项目控制器模块位置: https://github.com/kubernetes/kubernetes/tree/master/pkg/controller
+     下面有很多的控制器模块(Deployment、job、、、)  
+     这些控制器之所以被统一放在 pkg/controller 目录下，就是因为它们都遵循 Kubernetes 项目中的一个通用编排模式，即：控制循环（control loop）。
+     比如，现在有一种待编排的对象 X，它有一个对应的控制器。那么，我就可以用一段 Go 语言风格的伪代码，为你描述这个控制循环：     
+        for {
+          实际状态 := 获取集群中对象 X 的实际状态（Actual State）
+          期望状态 := 获取集群中对象 X 的期望状态（Desired State）
+          if 实际状态 == 期望状态{
+            什么都不做
+          } else {
+            执行编排动作，将实际状态调整为期望状态
+          }
+        }
+        实际状态主要来自于kubernetes项目对Pod对象的监控状态   
+        期望状态来自于用户的yaml文件,如: spec.replicas=2 这样的信息，这样的信息往往存在etcd中。
+        Deployment控制器的大致逻辑如下:
+            1、Deployment 控制器从 Etcd 中获取到所有携带了“app: nginx”标签的 Pod，然后统计它们的数量，这就是实际状态；
+            2、Deployment 对象的 Replicas 字段的值就是期望状态；
+            3、Deployment 控制器将两个状态做比较，然后根据比较结果，确定是创建 Pod，还是删除已有的 Pod。
+         这个操作，通常被叫作调谐（Reconcile）。这个调谐的过程，则被称作“Reconcile Loop”（调谐循环）或者“Sync Loop”（同步循环）。
+         在所有 API 对象的 Metadata 里，都有一个字段叫作 ownerReference，用于保存当前这个 API 对象的拥有者（Owner）的信息。  
 
 
 
