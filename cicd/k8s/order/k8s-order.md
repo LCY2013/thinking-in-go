@@ -728,6 +728,18 @@ kubernetes如何解决这样的问题?
     这两个 Pod 的 hostname 与 Pod 名字是一致的，都被分配了对应的编号。接下来，我们再试着以 DNS 的方式，访问一下这个 Headless Service： 
     $ kubectl run -i --tty --image busybox:1.28.4 dns-test --restart=Never --rm /bin/sh
     / # nslookup web-0.nginx    =========注意这里用1.28.4这个busybox镜像，最新的镜像可能存在问题
+    如果这里拿不到这个准确的ip地址、可以用以下的流程操作
+    $ kubectl exec web-0 -- sh -c 'cat /etc/hosts'
+        # Kubernetes-managed hosts file.
+        127.0.0.1	localhost
+        ::1	localhost ip6-localhost ip6-loopback
+        fe00::0	ip6-localnet
+        fe00::0	ip6-mcastprefix
+        fe00::1	ip6-allnodes
+        fe00::2	ip6-allrouters
+        10.244.1.94	web-0.nginx.default.svc.cluster.local	web-0
+    / # nslookup web-0.nginx.default.svc.cluster.local   
+    / # nslookup web-0.nginx.default  
     / # ping web-0.nginx
     当前Terminal启动pod监听
     $ kubectl get pods -w -l app=nginx
