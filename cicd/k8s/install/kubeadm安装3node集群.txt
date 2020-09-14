@@ -284,7 +284,6 @@ $ kubectl get namespace rook-ceph -o json \
             | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
             | kubectl replace --raw /api/v1/namespaces/rook-ceph/finalize -f -
 
-
 部署webui dashboard
 地址: https://github.com/kubernetes/dashboard
 下载官方的yaml文件:
