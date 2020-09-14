@@ -1,0 +1,35 @@
+node {
+    script {
+        mysql_addr = '127.0.0.1' // service cluster ip
+        redis_addr = '127.0.0.1' // service cluster ip
+        user_addr = '127.0.0.1:9527' // nodeIp : port
+    }
+    stage('clone code from github') {
+        echo "first stage: clone code"
+        git url: "https://github.com/LCY2013/thinking-in-go.git"
+        script {
+            commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        }
+    }
+    stage('build image') {
+        echo "second stage: build docker image"
+        sh "docker build -t luochunyun/user:${commit_id} micservices/projects/user/"
+    }
+    stage('push image') {
+        echo "third stage: push docker image to registry"
+        sh "docker login -u user -p password"
+        sh "docker push luochunyun/user:${commit_id}"
+    }
+    stage('deploy to Kubernetes') {
+        echo "forth stage: deploy to Kubernetes"
+        sh "sed -i 's/<COMMIT_ID_TAG>/${commit_id}/' micservices/projects/pipeline/user-deployment.yaml"
+        sh "sed -i 's/<MYSQL_ADDR_TAG>/${mysql_addr}/' micservices/projects/pipeline/user-deployment.yaml"
+        sh "sed -i 's/<REDIS_ADDR_TAG>/${redis_addr}/' micservices/projects/pipeline/user-deployment.yaml"
+        sh "kubectl apply -f micservices/projects/pipeline/user-deployment.yaml"
+        sh "kubectl apply -f micservices/projects/pipeline/user-service.yaml"
+    }
+    stage('http test') {
+        echo "fifth stage: http test"
+        sh "cd micservices/projects/user/transport && go test  -args ${user_addr}"
+    }
+}
