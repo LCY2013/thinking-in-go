@@ -50,5 +50,5 @@ func main() {
 	errChan := make(chan error)
 
 	errorChan := <-errChan
-	log.Println("error from chan : ", errorChan)
+	log.Println("error from chan  : ", errorChan)
 }
