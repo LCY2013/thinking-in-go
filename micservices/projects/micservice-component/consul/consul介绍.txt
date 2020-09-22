@@ -1,0 +1,106 @@
+Consul 集群
+        Consul 集群中存在 Server 和 Client 两种角色节点，Server 中保存了整个集群的数据，
+    而 Client 负责对本地的服务进行健康检查和转发请求到 Server 中，并且也保存有注册到本节点的服务实例数据。
+
+        关于 Server 节点，一般建议你部署 3 个或者 5 个节点，但并不是越多越好，因为这会增加数据同步的成本。
+    Server 节点之间存在一个 Leader 和多个 Follower，通过 Raft 协议维护 Server 之间数据的强一致性。
+
+    使用kubernetes搭建生产环境的Consul集群:
+
+      Server 部署:
+        1、考虑到 Pod 的意外重启会导致 Consul Server IP 的变化，为 Consul Server 声明一个 Service:
+
+            micservices/projects/micservice-component/consul/consul-server-service.yaml
+
+           Consul Server 对外暴露了诸多接口，包括响应 HTTP 和 HTTPS 请求的 8500 和 8433 端口等，Service 方式使得这些端口在集群内可通过 ClusterIP:Port 的方式访问。
+
+        2、当 Consul Server 所在的 Pod 重启后，新启动的 Consul Server 需要重新加入集群中，这就需要知道 Leader 节点 IP。
+            对此，我们可以使用 Kubernetes 提供的 DNS 功能访问不同 Pod 的 Consul Server，
+            并通过 StatefulSets Controller 管理 Consul Server，使得每个 Consul Server Pod 有固定的标识用于 DNS 解析。
+            通过这样的方式能够使得 Consul Server 集群可以自动处理 Leader 选举和新节点加入的问题，充分利用 Kubernetes 的自动伸缩和调度能力。
+
+            micservices/projects/micservice-component/consul/consul-server-statefulset.yaml
+
+           上述配置中指定了 Controller 为 StatefulSet，这使得被管理的 Pod 具备固定的命名规则，可用于 DNS 解析，
+           它们的 Pod 名称分别为 consul-server-0、consul-server-1 和 consul-server-2。
+           配置还通过 -retry-join 选项让新加入的节点逐一尝试加入每一个 Consul Server，
+           直到发现真正的 Leader 节点并加入 Consul Server 集群中。
+
+        3、为了方便在 Kubernetes 集群外访问 Consul UI，可以通过 NodePort 暴露 Consul Server 的 8500 端口
+
+            micservices/projects/micservice-component/consul/consul-server-ui-http.yaml
+
+        依次启动上面的三个yaml文件就可以访问浏览器中 http://ip:30098
+
+      Client 部署:
+            为方便 Consul Client 对服务节点上的微服务进行管理，建议在每一个服务节点上部署 Consul Client，
+        对此我们可以通过 DaemonSet Controller 的方式部署 Consul Client。
+
+        1、DaemonSet Controller 能够确保在集群所有的 Node 中或者指定的 Node 中都运行一个副本 Pod
+            micservices/projects/micservice-component/consul/consul-client.yaml
+
+            在上述配置中，我们指定 Controller 为 DaemonSet，并修改 Consul 的启动命令，去除 -server 等选项，使得 Consul 以 Client 的角色启动并加入集群中。
+            除此之外，还通过 volumes 配置将 Consul Client 的数据目录 /consul/data 挂载到 Node 节点上，
+            使得意外宕机的 Consul Client 重启时能够复用相同的 node-id 等元数据，避免导致 Consul 中出现同一个 IP 对应不同主机名的服务注册错误的情况。
+
+        启动Consul Client，访问浏览器http://ip:30098
+
+注册服务到 Consul
+    Consul 提供 HTTP 和 DNS 两种方式访问服务注册与发现接口，我们接下来的实践主要是基于 HTTP API 进行的。
+
+    由于我们是通过 Consul Client 进行服务注册与发现，所以接下来我们会首先介绍 Consul Client 中提供的用于服务注册、服务注销和服务发现的 HTTP API，
+    如下所示：
+        /v1/agent/service/register // 服务注册接口
+        /v1/agent/service/deregister/${instanceId} // 服务注销接口
+        /v1/health/service/${serviceName} // 服务发现接口
+
+    服务注册接口: 用于服务启动成功后，服务实例将自身所属的服务名和服务元数据，包括服务实例 ID、服务 IP、服务端口等提交到 Consul Client 中完成服务注册。
+
+    服务注销接口: 当服务关闭时，为了避免无效的请求，服务实例会调用服务注销接口主动将自身服务实例数据从 Consul 中移除。
+
+    服务发现接口: 用于在发起远程调用时根据服务名获取该服务可用的服务实例信息列表，然后调用方就可以使用一定的负载均衡策略选择某个服务实例发起远程调用，
+        该接口会把查询请求转发到 Consul Server 处理。
+        另外，还存在 /v1/agent/health/service/ 接口用于获取注册到本地 Consul Client 的可用服务实例信息列表。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
