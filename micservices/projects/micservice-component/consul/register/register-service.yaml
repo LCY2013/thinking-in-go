@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
     - name: register
-      image: register
+      image: registry.cn-hangzhou.aliyuncs.com/luochunyun/register
       ports:
         - containerPort: 9527
       imagePullPolicy: IfNotPresent

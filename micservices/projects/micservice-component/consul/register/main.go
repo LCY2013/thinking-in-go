@@ -26,12 +26,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	discoverys "regiter/discovery"
+	"regiter/endpoint"
+	"regiter/service"
+	"regiter/transport"
 	"strconv"
 	"syscall"
-	discoverys "user/discovery"
-	"user/endpoint"
-	"user/service"
-	"user/transport"
 )
 
 // 程序主函数信息
@@ -39,7 +39,7 @@ func main() {
 	var (
 		// waitTime = flag.Int("wait.time", 10, "wait time")
 		// consul address
-		consulAddr = flag.String("consul.addr", "localhost", "consul address")
+		consulAddr = flag.String("consul.addr", "192.168.99.121", "consul address")
 		// consul port
 		consulPort = flag.Int("consul.port", 8500, "consul port")
 		// service name

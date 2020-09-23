@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
-	"user/endpoint"
+	"regiter/endpoint"
 )
 
 var (

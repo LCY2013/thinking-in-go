@@ -30,16 +30,16 @@ import (
 
 // 服务实例结构体定义
 type InstanceInfo struct {
-	ID                string                    `json:"ID"`                // 服务实例ID
-	Service           string                    `json:"Service,omitempty"` // 服务发现时返回服务名称
-	Name              string                    `json:"Name"`              // 服务名称
-	Tags              []string                  `json:"Tags,omitempty"`    // 标签用于服务过滤
-	Address           string                    `json:"Address"`           // 服务实例Host
-	Port              int                       `json:"Port"`              // 服务实例端口号
-	Meta              map[string]string         `json:"Meta,omitempty"`    // 元信息
-	EnableTagOverride bool                      `json:"EnableTagOverride"` // 是否运行标签覆盖
-	Check             `json:"Check,omitempty"`  // 健康检测
-	Weight            `json:"Weight,omitempty"` // 权重
+	ID string `json:"ID"` // 服务实例ID
+	//Service           string                    `json:"Service,omitempty"` // 服务发现时返回服务名称
+	Name              string                     `json:"Name"`              // 服务名称
+	Tags              []string                   `json:"Tags,omitempty"`    // 标签用于服务过滤
+	Address           string                     `json:"Address"`           // 服务实例Host
+	Port              int                        `json:"Port"`              // 服务实例端口号
+	Meta              map[string]string          `json:"Meta,omitempty"`    // 元信息
+	EnableTagOverride bool                       `json:"EnableTagOverride"` // 是否运行标签覆盖
+	Check             `json:"Check,omitempty"`   // 健康检测
+	Weights           `json:"Weights,omitempty"` // 权重
 }
 
 // 定义健康检测结构体
@@ -52,7 +52,7 @@ type Check struct {
 }
 
 // 定义权重结构体
-type Weight struct {
+type Weights struct {
 	Passing int `json:"Passing"`
 	Warning int `json:"Warning"`
 }
@@ -77,7 +77,7 @@ func (consulClient *DiscoveryClient) Register(ctx context.Context,
 	serviceName, instanceId, healCheckUrl, instanceHost string,
 	instancePort int,
 	meta map[string]string,
-	weight *Weight) error {
+	weight *Weights) error {
 
 	// 构建一个服务实例相关信息
 	instanceInfo := &InstanceInfo{
@@ -96,12 +96,12 @@ func (consulClient *DiscoveryClient) Register(ctx context.Context,
 
 	// 判断权重是否为nil
 	if weight == nil {
-		instanceInfo.Weight = Weight{
+		instanceInfo.Weights = Weights{
 			Passing: 10,
 			Warning: 1,
 		}
 	} else {
-		instanceInfo.Weight = *weight
+		instanceInfo.Weights = *weight
 	}
 
 	// 使用json序列化服务实例

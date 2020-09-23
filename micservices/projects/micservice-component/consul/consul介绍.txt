@@ -62,7 +62,13 @@ Consul 集群
         该接口会把查询请求转发到 Consul Server 处理。
         另外，还存在 /v1/agent/health/service/ 接口用于获取注册到本地 Consul Client 的可用服务实例信息列表。
 
-
+启动本例register
+    构建register-service.yaml文件:
+        1、在 Kubernetes 部署微服务实例时，可以通过获取服务实例所在的 Pod IP 作为服务实例 IP 提交到 Consul，
+          使用 Kubernetes 的 valueFrom 即可获取服务实例所在 Pod 的相关信息。
+        2、由于 Consul Client 部署在每一个 Node 节点中，我们可以直接获取 spec.nodeName（即 Pod 所在 Node 节点的主机名）作为 Consul Client 的地址传递给 Go 微服务，
+            而 Go 微服务的 IP 地址即其所在 Pod 的 IP。在 Kubernetes 中启动该配置后即可在 Consul UI 中查看到该服务实例注册到 Consul 中。
+        3、进入到 register 服务所在的 Pod，通过 curl 访问 /discovery/name?serviceName={serviceName} 即可根据服务名获取注册到 Consul 中的服务实例信息列表。
 
 
 

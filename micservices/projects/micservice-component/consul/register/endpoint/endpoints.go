@@ -20,8 +20,8 @@ package endpoint
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	discoverys "user/discovery"
-	"user/service"
+	discoverys "regiter/discovery"
+	"regiter/service"
 )
 
 // 注册端点结构体

@@ -21,7 +21,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	discoverys "user/discovery"
+	discoverys "regiter/discovery"
 )
 
 // 定义一个service的接口
