@@ -39,7 +39,7 @@ func main() {
 	var (
 		// waitTime = flag.Int("wait.time", 10, "wait time")
 		// consul address
-		consulAddr = flag.String("consul.addr", "192.168.99.121", "consul address")
+		consulAddr = flag.String("consul.addr", "localhost", "consul address")
 		// consul port
 		consulPort = flag.Int("consul.port", 8500, "consul port")
 		// service name
@@ -94,7 +94,8 @@ func main() {
 
 	if err != nil {
 		log.Printf("register service err : %s\n", err)
-		os.Exit(-1)
+		//os.Exit(-1)
+
 	}
 
 	errorMsg := <-errChan

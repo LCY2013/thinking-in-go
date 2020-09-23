@@ -1,6 +1,6 @@
 FROM golang:latest
-WORKDIR /root
-COPY / /root
+WORKDIR /temp
+COPY . /temp
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go build -o register
 EXPOSE 9527

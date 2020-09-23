@@ -15,7 +15,8 @@ spec:
         - name: consulAddr
           valueFrom:
             fieldRef:
-              fieldPath: spec.nodeName
+              fieldPath: status.hostIP
+#              fieldPath: spec.nodeName
         - name: serviceAddr
           valueFrom:
             fieldRef:
