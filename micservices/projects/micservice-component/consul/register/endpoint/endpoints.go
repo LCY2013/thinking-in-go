@@ -17,10 +17,17 @@
  */
 package endpoint
 
-import discoverys "user/discovery"
+import (
+	"context"
+	"github.com/go-kit/kit/endpoint"
+	discoverys "user/discovery"
+	"user/service"
+)
 
 // 注册端点结构体
 type RegisterEndpoints struct {
+	DiscoveryEndpoint   endpoint.Endpoint
+	HealthCheckEndpoint endpoint.Endpoint
 }
 
 // 服务发现请求结构体
@@ -32,4 +39,50 @@ type DiscoveryRequest struct {
 type DiscoveryResponse struct {
 	Instances []*discoverys.InstanceInfo `json:"instances"`
 	Error     string                     `json:"error"`
+}
+
+// 健康检查请求HealthRequest结构体
+type HealthCheckRequest struct {
+}
+
+// 健康检查响应HealthResponse结构体
+type HealthCheckResponse struct {
+	Status string `json:"status"`
+}
+
+// endpoint 设置
+
+// 创建服务发现的endpoint
+func MakeDiscoveryEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+
+		// 强制转换任意类型的请求到服务发现请求结构体
+		req := request.(DiscoveryRequest)
+		// 通过服务发现去consul获取服务实例
+		discoveryServices, err := svc.DiscoveryService(ctx, req.ServiceName)
+
+		// 定义错误消息内容
+		var errMsg = ""
+		if err != nil {
+			errMsg = err.Error()
+		}
+		// 返回服务发现响应结构体
+		return DiscoveryResponse{
+			Instances: discoveryServices,
+			Error:     errMsg,
+		}, nil
+	}
+}
+
+// 创建健康检查的endpoint
+func MakeHealCheckEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+
+		// 利用服务去查询健康状态
+		checkStatus := svc.HealthCheck()
+		// 返回健康检查响应结构体
+		return HealthCheckResponse{
+			Status: checkStatus,
+		}, nil
+	}
 }

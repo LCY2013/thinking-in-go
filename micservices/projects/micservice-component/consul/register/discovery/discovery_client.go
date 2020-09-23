@@ -140,6 +140,38 @@ func (consulClient *DiscoveryClient) Register(ctx context.Context,
 	return nil
 }
 
+// 取消注册服务
+func (consulClient *DiscoveryClient) Deregister(ctx context.Context, instanceId string) error {
+	request, err := http.NewRequest("PUT",
+		"http://"+consulClient.host+":"+strconv.Itoa(consulClient.port)+"/v1/agent/service/deregister/"+instanceId, nil)
+	if err != nil {
+		log.Printf("deregister req format err : %s\n", err)
+		return err
+	}
+
+	// http 请求客户端
+	client := http.Client{}
+	client.Timeout = time.Second * 2
+
+	// 发送http请求
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Printf("deregister service error : %s\n", err)
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Printf("deregister service http errCode : %v\n", resp.StatusCode)
+		return fmt.Errorf("deregister service http errCode : %v\n", resp.StatusCode)
+	}
+
+	log.Printf("deregister service %s success\n", instanceId)
+	return nil
+}
+
+// 发现服务
 func (consulClient *DiscoveryClient) DiscoveryServices(ctx context.Context,
 	serviceName string) ([]*InstanceInfo, error) {
 

@@ -9,7 +9,7 @@ spec:
     - name: register
       image: register
       ports:
-        - containerPort: 12312
+        - containerPort: 9527
       imagePullPolicy: IfNotPresent
       env:
         - name: consulAddr

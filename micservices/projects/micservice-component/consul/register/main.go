@@ -20,8 +20,18 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"github.com/google/uuid"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 	discoverys "user/discovery"
+	"user/endpoint"
+	"user/service"
+	"user/transport"
 )
 
 // 程序主函数信息
@@ -40,6 +50,7 @@ func main() {
 		servicePort = flag.Int("service.port", 9527, "service port")
 	)
 
+	// 通过命令行参数或者环境变量获取服务配置信息
 	flag.Parse()
 
 	// 创建DiscoveryClient
@@ -49,6 +60,59 @@ func main() {
 	// 错误通知的channel
 	errChan := make(chan error)
 
-	errorChan := <-errChan
-	log.Println("error from chan  : ", errorChan)
+	// 获取注册服务实现
+	srv := service.NewRegisterServiceImpl(client)
+
+	// 定义注册需要的端点
+	endpoints := endpoint.RegisterEndpoints{
+		DiscoveryEndpoint:   endpoint.MakeDiscoveryEndpoint(srv),
+		HealthCheckEndpoint: endpoint.MakeHealCheckEndpoint(srv),
+	}
+
+	// http 处理器构建
+	handler := transport.MakeHttpHandler(ctx, &endpoints)
+
+	// 协程异步监听http服务
+	go func() {
+		errChan <- http.ListenAndServe(":"+strconv.Itoa(*servicePort), handler)
+	}()
+
+	go func() {
+		// 监控系统信号，等待Ctrl+C 系统信号通知服务关闭
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		errChan <- fmt.Errorf("%s", <-c)
+	}()
+
+	// 创建一个服务实例ID
+	instanceId := *serviceName + "-" + uuid.New().String()
+
+	// 注册服务
+	err := client.Register(ctx, *serviceName, instanceId,
+		"/health", *serviceAddr, *servicePort,
+		nil, nil)
+
+	if err != nil {
+		log.Printf("register service err : %s\n", err)
+		os.Exit(-1)
+	}
+
+	errorMsg := <-errChan
+	log.Printf("listen error : %s\n", errorMsg)
+
+	// 取消注册
+	err = client.Deregister(ctx, instanceId)
+
+}
+
+func init() {
+	// 定义注册服务的日志文件
+	file := "./" + "register.log"
+	openFile, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+	if err != nil {
+		panic(err)
+	}
+	// 将文件设置为log输出文件
+	log.SetOutput(openFile)
+	log.SetFlags(log.Ldate | log.Lshortfile)
 }
