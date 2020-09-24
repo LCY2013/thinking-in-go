@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: register
+  labels:
+    name: register
+spec:
+  selector:
+    matchLabels:
+      name: register
+  replicas: 1
+  template:
+    metadata:
+      name: register
+      labels:
+        name: register
+        app: register
+    spec:
+      containers:
+        - name: register
+          image: registry.cn-hangzhou.aliyuncs.com/luochunyun/register
+          ports:
+            - containerPort: 9527
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: consulAddr
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+#                  fieldPath: spec.nodeName
+            - name: serviceAddr
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: register-service
+  labels:
+    name: register-service
+spec:
+  selector:
+    name: register
+  ports:
+    - protocol: TCP
+      port: 9527
+      targetPort: 9527
+      name: register-service-http

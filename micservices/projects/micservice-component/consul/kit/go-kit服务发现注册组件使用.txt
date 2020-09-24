@@ -1,0 +1,32 @@
+go-kit 微服务工具集
+
+    1、Go-kit 提供了诸多服务注册与发现组件的客户端实现，支持包括 Consul、Etcd、ZooKeeper和 Eureka 在内的多种服务注册与发现中心。
+        以 Consul 为例，实践如何使用 Go-kit 的 sd 包简化微服务服务注册与发现的实现。
+
+    2、sd 包中提供如下注册和注销接口
+        type Registrar interface {
+        	Register() // 服务注册
+        	Deregister() // 服务注销
+        }
+
+    3、构建服务发现 discovery_client.go
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
