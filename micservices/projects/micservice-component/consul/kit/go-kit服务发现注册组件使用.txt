@@ -11,6 +11,17 @@ go-kit 微服务工具集
 
     3、构建服务发现 discovery_client.go
 
+    4、go-kit提供的是一套注册抽象github.com/go-kit/kit@v0.10.0/sd/registrar.go
+        以consul为例 : github.com/go-kit/kit@v0.10.0/sd/consul/registrar.go
+            它实现了抽象的Registrar 接口，内部是一个NewRegistrar函数，返回包装了一个含有github.com/go-kit/kit@v0.10.0/sd/consul/client.go接口、
+            github.com/hashicorp/consul/api@v1.3.0/agent.go(consul官方客户端)、logger日志的结构体
+
+        可以看出go-kit对于不同的服务注册发现中心都是采用这个方式实现，具体的客户端由具体的注册发现中心的客户端去交互，抽象出了通用的接口
+            type Registrar interface {
+            	Register()
+            	Deregister()
+            }
+
 
 
 
