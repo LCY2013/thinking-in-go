@@ -86,6 +86,7 @@ Istio 以 Sidecar 的方式在应用程序运行的 Pod 中注入 Proxy，全面
 如果不想开启命令空间的标记，也可以通过 istioctl kube-inject 为 Pod 注入 Proxy Sidecar 容器。
 接下来，我们就为 register 服务所在的 Pod 注入 Proxy，启动命令如下：
     istioctl kube-inject -f register-service.yaml | kubectl apply -f - 
+    istioctl kube-inject -f register-service.yaml | kubectl delete -f -
 register-service.yaml 服务的 yaml 配置如下：
 apiVersion: apps/v1 
 kind: Deployment 
@@ -141,6 +142,9 @@ spec:
 主要的改动有：为 register 服务添加 Deployment Controller，添加了新的标签 app，以及为 register 添加相应的 Service 资源。
 如果在部署 Istio 时启动了 kiali 插件，即可在 kiali 平台中查看到 register 服务的相关信息，通过以下命令即可打开 kiali 控制面板，默认账户和密码都为 admin：
     istioctl dashboard kiali 
+    istioctl dashboard kiali --address 192.168.99.120
+卸载kiali
+    kubectl delete -f kiali.yaml --ignore-not-found
 kiali控制台解析:
     Overview，网格概述，展示 Istio 内具有服务的所有命名空间；
     
