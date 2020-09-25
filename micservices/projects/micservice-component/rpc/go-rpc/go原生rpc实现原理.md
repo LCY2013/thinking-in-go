@@ -1,4 +1,5 @@
 ### go 原生支持rpc 调用
+
 1、net/rpc/server.go 
 
    注册函数: Register
