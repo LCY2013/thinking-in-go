@@ -36,7 +36,7 @@ type StringRequest struct {
 // 定义rpc接口
 type Service interface {
 	// Concat sa and sb
-	Concat(sa, sb string) string
+	Concat(req StringRequest, ret *string) error
 }
 
 type StringService struct {

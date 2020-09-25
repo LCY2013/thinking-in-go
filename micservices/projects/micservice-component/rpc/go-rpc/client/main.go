@@ -31,6 +31,8 @@ func main() {
 	}
 
 	sr := &service.StringRequest{"hello ", "go rpc"}
+
+	// 同步调用
 	var reply string
 	err = client.Call("StringService.Concat", sr, &reply)
 	if err != nil {
