@@ -29,6 +29,8 @@ import (
 	$ go run echo.go hello fufeng
 	$ go build echo.go
 	$ ./echo hello fufeng
+
+	-n用于忽略行尾的换行符，-s sep用于指定分隔字符(默认是空格)
 */
 func main() {
 	// echo1()
