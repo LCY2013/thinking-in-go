@@ -35,7 +35,16 @@ Mutex、RWMutex 都实现了该接口
 
 */
 func main() {
-	case01()
+	// data race
+	// case01()
+
+	// mutex
+	// case02()
+
+	// mutex struct
+	// case03()
+
+	case04()
 }
 
 /*
@@ -97,4 +106,111 @@ func case01() {
 	wg.Wait()
 
 	fmt.Println(count)
+}
+
+//===============================
+/*
+	利用mutex解决数据竞态问题
+*/
+func case02() {
+	// 定义一个初始化的统计变量
+	var count = 0
+	// 定义一个等待组
+	var wg sync.WaitGroup
+	wg.Add(10)
+
+	// 定义互斥锁
+	//mutex := sync.Mutex{}
+	// Mutex 的零值是还没有 goroutine 等待的未加锁的状态，所以你不需要额外的初始化，直接声明变量即可
+	var mutex sync.Mutex
+
+	for i := 0; i < 10; i++ {
+		go func(num int) {
+			// 等待组释放
+			defer wg.Done()
+			//fmt.Println("wg ",num)
+			// 这里对count进行递增操作
+			for k := 0; k < 10000; k++ {
+				mutex.Lock()
+				count++
+				mutex.Unlock()
+			}
+		}(i)
+	}
+
+	// 休眠等待goroutine执行完成
+	//time.Sleep(time.Second)
+
+	// 等待goroutine执行完成
+	wg.Wait()
+
+	fmt.Println(count)
+}
+
+//===============================
+func case03() {
+	var counter Counter03
+
+	var wg sync.WaitGroup
+	wg.Add(10)
+
+	for i := 0; i < 10; i++ {
+		go func() {
+			defer wg.Done()
+			for k := 0; k < 10000; k++ {
+				counter.mutex.Lock()
+				counter.count++
+				counter.mutex.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+	fmt.Println(counter.count)
+}
+
+// 通过定义一个结构体绑定互斥锁
+type Counter03 struct {
+	mutex sync.Mutex
+	count int
+}
+
+//===============================
+func case04() {
+	var counter Counter
+
+	var wg sync.WaitGroup
+	wg.Add(10)
+
+	for i := 0; i < 10; i++ {
+		go func() {
+			defer wg.Done()
+			for k := 0; k < 10000; k++ {
+				counter.incr()
+			}
+		}()
+	}
+
+	wg.Wait()
+	fmt.Println(counter.counts())
+}
+
+type Counter struct {
+	CounterType int
+	Name        string
+
+	mutex sync.Mutex
+	count uint64
+}
+
+func (counter *Counter) incr() {
+	defer counter.mutex.Unlock()
+	counter.mutex.Lock()
+	counter.count++
+}
+
+func (counter *Counter) counts() uint64 {
+	defer counter.mutex.Unlock()
+	counter.mutex.Lock()
+	return counter.count
 }
