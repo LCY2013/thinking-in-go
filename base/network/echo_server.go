@@ -25,6 +25,7 @@ import (
 )
 
 // 利用Thread-Per-Message模式
+// https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
 func main() {
 	// 监听本地端口号
 	listen, err := net.Listen("tcp", "127.0.0.1:8080")
