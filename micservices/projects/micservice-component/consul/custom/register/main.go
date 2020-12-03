@@ -106,6 +106,7 @@ func main() {
 
 }
 
+// init先于main函数执行，执行完成后main启动
 func init() {
 	// 定义注册服务的日志文件
 	file := "./" + "register.log"
