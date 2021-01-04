@@ -353,6 +353,12 @@ pod中另一个重要字段(status):
 ```
 
 #### Pod中重要字段 Projected Volume
+[secret](https://kubernetes.io/zh/docs/concepts/configuration/secret/)
+
+[configmap](https://kubernetes.io/zh/docs/concepts/configuration/configmap/)
+
+[downward api](https://kubernetes.io/zh/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/)
+
 ```text
 特殊的 Volume，叫作 Projected Volume，你可以把它翻译为“投射数据卷”。
     注意：Projected Volume 是 Kubernetes v1.11 之后的新特性
@@ -364,7 +370,7 @@ pod中另一个重要字段(status):
           mysql-secret.yaml中 这个 Pod 中，定义了一个简单的容器,它声明挂载的 Volume，并不是常见的 emptyDir 或者 hostPath 类型，
         而是 projected 类型。而这个 Volume 的数据来源（sources），则是名为 user 和 pass 的 Secret 对象，分别对应的是数据库的用户名和密码。
         这里用到的数据库的用户名、密码，正是以 Secret 对象的方式交给 Kubernetes 保存的。完成这个操作的指令，如下所示:
-        $ cat ./username.txt
+        $ ctest-projected-volumeat ./username.txt
          root
         $ cat ./password.txt
          123456
