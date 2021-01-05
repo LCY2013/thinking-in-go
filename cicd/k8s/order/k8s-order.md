@@ -23,6 +23,9 @@ kubectl get pods
 #### 查看命名空间是kube-system下的所有pod(kube-system是kubeadm安装后的默认k8s组件的命名空间)
 kubectl get pod -n kube-system -o wide
 
+#### 通过kubectl查询警告信息 (利用kubeAdmin 安装)
+kubectl -n kube-system logs -l=component=kube-apiserver
+
 #### 创建yaml文件部署nginx nginx-deployment.yaml
 创建一个nginx-deployment.yaml API对象
 
@@ -579,6 +582,14 @@ Secret、ConfigMap，以及 Downward API 这三种 Projected Volume 定义的信
              我们现在提交的是一个 nginx-deployment，那么这个 Deployment 对象本身是永远不会被 PodPreset 改变的，被修改的只是这个 Deployment 创建出来的所有 Pod。
              这里有一个问题：如果你定义了同时作用于一个 Pod 对象的多个 PodPreset，会发生什么呢？
              实际上，Kubernetes 项目会帮你合并（Merge）这两个 PodPreset 要做的修改。而如果它们要做的修改有冲突的话，这些冲突字段就不会被修改。
+   
+   kubectl get pod --selector=role=frontend -o yaml       
+  
+kubernetes 启动 podPreset 需要在(/etc/kubernetes/manifests/kube-apiserver.yaml)添加下面信息(spec.containers.command):
+- --enable-admission-plugins=NodeRestriction,PodPreset
+- --runtime-config=settings.k8s.io/v1alpha1=true
+修改后kube-apiserver就会自动重启
+      
 ````
 
 ### 编排 
