@@ -732,9 +732,9 @@ Kubernetes 项目中的一个非常重要的概念（API 对象）：ReplicaSet 
    1         kubectl apply --filename=nginx-deployment.yaml --record=true
    3         kubectl apply --filename=nginx-deployment.yaml --record=true
    5         kubectl apply --filename=nginx-deployment.yaml --record=true
- 第一种  
+ 第一步 
  $ kubectl rollout history deployment/nginx-deployment --revision=5 
- 第二种
+ 第二步
  $ kubectl rollout undo deployment/nginx-deployment --to-revision=5
  Kubernetes 项目还提供了一个指令，使得我们对 Deployment 的多次更新操作，最后 只生成一个 ReplicaSet。
  具体的做法是，在更新 Deployment 前，你要先执行一条 kubectl rollout pause 指令。它的用法如下所示： 
