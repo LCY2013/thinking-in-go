@@ -395,9 +395,9 @@ pod中另一个重要字段(status):
         其中，“user”就是第一份数据的 Key，“pass”是第二份数据的 Key。
             需要注意的是，Secret 对象要求这些数据必须是经过 Base64 转码的，以免出现明文密码的安全隐患。
         这个转码操作也很简单，比如： 
-          $ echo -n 'root' | base64
+          $ echo -n root | base64
             cm9vdA==
-          $ echo -n '123456' | base64
+          $ echo -n 123456 | base64
             MTIzNDU2
          删除secret
         $ kubectl delete secret user
@@ -487,7 +487,7 @@ Secret、ConfigMap，以及 Downward API 这三种 Projected Volume 定义的信
 但是，通过环境变量获取这些信息的方式，不具备自动更新的能力。所以，一般情况下，都建议你使用 Volume 文件的方式获取这些信息。 
 ```
 
-#### Pod 的重要的配置：容器健康检查和恢复机制
+#### [Pod 的重要的配置：容器健康检查和恢复机制](https://kubernetes.io/zh/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 ````text
 在 Kubernetes 中，你可以为 Pod 里的容器定义一个健康检查“探针”（Probe）。这样，kubelet 就会根据这个 Probe 的返回值决定这个容器的状态，
 而不是直接以容器进行是否运行（来自 Docker 返回的信息）作为依据。这种机制，是生产环境中保证应用健康存活的重要手段。
