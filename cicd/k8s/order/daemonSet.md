@@ -228,11 +228,13 @@ $ kubectl rollout undo daemonset fluentd-elasticsearch --to-revision=1 -n kube-s
 这也是为什么，在执行完这次回滚完成后，你会发现，DaemonSet 的 Revision 并不会从Revision=2 退回到 1，而是会增加成 Revision=3。这是因为，一个新的ControllerRevision 被创建了出来。
 ```
 
+相比于 Deployment，DaemonSet 只管理 Pod 对象，然后通过 nodeAffinity 和Toleration 这两个调度器的小功能，保证了每个节点上有且只有一个 Pod。
 
+与此同时，DaemonSet 使用 ControllerRevision，来保存和管理自己对应的“版本”。这种“面向 API 对象”的设计思路，大大简化了控制器本身的逻辑，也正是 Kubernetes 项目“声明式 API”的优势所在。
 
+StatefulSet 也是直接控制 Pod 对象的，那么它是不是也在使用 ControllerRevision 进行版本管理呢？
 
-
-
+没错。在 Kubernetes 项目里，ControllerRevision 其实是一个通用的版本管理对象。这样，Kubernetes 项目就巧妙地避免了每种控制器都要维护一套冗余的代码和逻辑的问题。
 
 
 
