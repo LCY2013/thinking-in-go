@@ -448,22 +448,26 @@ $ kubectl create -f mysql-statefulset.yaml
 statefulset.apps/mysql created
 
 $ kubectl get pod -l app=mysql
-NAME      READY   STATUS     RESTARTS   AGE
-mysql-0   0/2     Init:0/2   0          28s
+NAME                                      READY   STATUS    RESTARTS   AGE
+mysql-0                                   2/2     Running   0          96s
+mysql-1                                   2/2     Running   1          73s
+mysql-2                                   2/2     Running   1          50s
 
 尝试向这个 MySQL 集群发起请求，执行一些 SQL 操作来验证它是否正常：
-$ kubectl run mysql-client --image=mysql:5.7 -i --rm --restart=Never -- \  
-  mysql -h mysql-0 << EOF
+$ kubectl run mysql-client --image=mysql:5.7 -i --rm --restart=Never -- \
+   mysql -h mysql-0.mysql << EOF
 CREATE DATABASE test;
 CREATE TABLE test.messages (message VARCHAR(250));
 INSERT INTO test.messages VALUES ('hello');
 EOF
+If you don't see a command prompt, try pressing enter.
+pod "mysql-client" deleted
 
 通过启动一个容器，使用 MySQL client 执行了创建数据库和表、以及插入数据的操作。需要注意的是，连接的 MySQL 的地址必须是 mysql-0.mysql（即：Master 节点的 DNS 记录）。因为，只有 Master 节点才能处理写操作。
 
 通过连接 mysql-read 这个 Service，我们就可以用 SQL 进行读操作，如下所示：
 $ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
- mysql -h mysql-read -e "SELECT * FROM test.messages"
+  mysql -h mysql-read -e "SELECT * FROM test.messages"
 +---------+
 | message |
 +---------+
@@ -476,7 +480,7 @@ $ kubectl scale statefulset mysql  --replicas=5
 
 直接连接 mysql-3.mysql，即 mysql-3 这个 Pod 的 DNS 名字来进行查询操作：
 $ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
-  mysql -h mysql-3.mysql -e "SELECT * FROM test.messages"
+    mysql -h mysql-3.mysql -e "SELECT * FROM test.messages"
   
 ```
 
