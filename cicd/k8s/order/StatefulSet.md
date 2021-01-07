@@ -504,3 +504,18 @@ kubectl patch 命令后面的参数（JSON 格式的），就是 partition 字�
 
 StatefulSet 可以说是 Kubernetes 项目中最为复杂的编排对象。
 ```
+
+### 移除相关资源
+```text
+移除statefulSet编排相关信息
+$ kubectl delete -f mysql-statefulset.yaml 
+
+移除service
+$ kubectl delete -f mysql-service.yaml 
+
+移除configmap
+$ kubectl delete -f mysql-configmap.yaml 
+
+移除所有pvc
+$ kubectl delete -f $(kubectl get pvc -l app=mysql | awk {'print$1'})
+```
