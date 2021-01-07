@@ -392,8 +392,97 @@ sidecar 容器首先会判断当前 Pod 的 /var/lib/mysql 目录下，是否有
 
 扳倒了这“三座大山”后，终于可以定义 Pod 里的主角，MySQL 容器了。有了前面这些定义和初始化工作，MySQL 容器本身的定义就非常简单了，如下所示：
 ```yaml
-
+#...
+# template.spec
+containers:
+- name: mysql
+  image: mysql:5.7.32
+  env:
+  - name: MYSQL_ALLOW_EMPTY_PASSWORD
+    value: "1"
+  ports:
+  - name: mysql
+    containerPort: 3306
+  volumeMounts:
+  - name: data
+    mountPath: /var/lib/mysql
+    subPath: mysql
+  - name: conf
+    mountPath: /etc/mysql/conf.d
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  livenessProbe:
+    exec:
+      command: ["mysqladmin", "ping"]
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readinessProbe:
+    exec:
+      # 通过 TCP 连接的方式进行健康检查
+      command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"]
+    initialDelaySeconds: 5
+    periodSeconds: 2
+    timeoutSeconds: 1
 ```
+在这个容器的定义里，使用了一个标准的 MySQL 5.7.32 的官方镜像。它的数据目录是/var/lib/mysql，配置文件目录是 /etc/mysql/conf.d。
+
+如果 MySQL 容器是 Slave 节点的话，它的数据目录里的数据，就来自于 InitContainer 从其他节点里拷贝而来的备份。它的配置文件目录/etc/mysql/conf.d 里的内容，则来自于 ConfigMap 对应的 Volume。而它的初始化工作，则是由同一个 Pod 里的 sidecar 容器完成的。
+
+为它定义了一个 livenessProbe，通过 mysqladmin ping 命令来检查它是否健康；还定义了一个 readinessProbe，通过查询 SQL（select 1）来检查 MySQL 服务是否可用。当然，凡是 readinessProbe 检查失败的 MySQL Pod，都会从 Service 里被摘除掉。
+
+##### 部署这个mysql集群
+注意：用到了 StorageClass 来完成这个操作。它的作用，是自动地为集群里存在的每一个 PVC，调用存储插件（Rook）创建对应的 PV。
+
+```text
+$ kubectl create -f mysql-configmap.yaml
+configmap/mysql created
+
+$ kubectl create -f mysql-service.yaml
+service/mysql created
+service/mysql-read created
+
+$ kubectl create -f mysql-statefulset.yaml
+statefulset.apps/mysql created
+
+$ kubectl get pod -l app=mysql
+NAME      READY   STATUS     RESTARTS   AGE
+mysql-0   0/2     Init:0/2   0          28s
+
+尝试向这个 MySQL 集群发起请求，执行一些 SQL 操作来验证它是否正常：
+$ kubectl run mysql-client --image=mysql:5.7 -i --rm --restart=Never -- \  
+  mysql -h mysql-0 << EOF
+CREATE DATABASE test;
+CREATE TABLE test.messages (message VARCHAR(250));
+INSERT INTO test.messages VALUES ('hello');
+EOF
+
+通过启动一个容器，使用 MySQL client 执行了创建数据库和表、以及插入数据的操作。需要注意的是，连接的 MySQL 的地址必须是 mysql-0.mysql（即：Master 节点的 DNS 记录）。因为，只有 Master 节点才能处理写操作。
+
+通过连接 mysql-read 这个 Service，我们就可以用 SQL 进行读操作，如下所示：
+$ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
+ mysql -h mysql-read -e "SELECT * FROM test.messages"
++---------+
+| message |
++---------+
+| hello   |
++---------+
+pod "mysql-client" deleted
+
+有了 StatefulSet 以后，你就可以像 Deployment 那样，非常方便地扩展这个 MySQL集群：
+$ kubectl scale statefulset mysql  --replicas=5
+
+直接连接 mysql-3.mysql，即 mysql-3 这个 Pod 的 DNS 名字来进行查询操作：
+$ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
+  mysql -h mysql-3.mysql -e "SELECT * FROM test.messages"
+  
+```
+
+
+
+
 
 
 
