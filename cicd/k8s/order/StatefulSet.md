@@ -484,20 +484,23 @@ $ kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
   
 ```
 
+### 对statefulSet进行滚动升级，只需要对statefulSet中的pod模版进行修改
+```text
+$ kubectl patch statefulset mysql --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value":"mysql:5.7.23"}]'
+statefulset.apps/mysql patched
 
+使用了 kubectl patch 命令，它的意思是，以“补丁”的方式（JSON 格式的）修改一个 API 对象的指定字段，也就是后面指定的“spec/template/spec/containers/0/image”。
 
+这样，StatefulSet Controller 就会按照与 Pod 编号相反的顺序，从最后一个 Pod 开始，逐一更新这个 StatefulSet 管理的每个 Pod。而如果更新发生了错误，这次“滚动更新”就会停止。此外，StatefulSet 的“滚动更新”还允许进行更精细的控制，比如金丝雀发布（Canary Deploy）或者灰度发布，这意味着应用的多个实例中被指定的一部分不会被更新到最新的版本。
 
+这个字段，正是 StatefulSet 的 spec.updateStrategy.rollingUpdate 的 partition 字段。
 
+将前面这个 StatefulSet 的 partition 字段设置为 2：
+$ kubectl patch statefulset mysql -p '{"spec":{"updateStrategy":{"type":"RollingUpdate","rollingUpdate":{"partition":2}}}}'
+statefulset.apps/mysql patched
+kubectl patch 命令后面的参数（JSON 格式的），就是 partition 字段在 API 对象里的路径。所以，上述操作等同于直接使用 kubectl edit 命令，打开这个对象，把partition 字段修改为 2。
 
+指定了当 Pod 模板发生变化的时候，比如 MySQL 镜像更新到 5.7.23，那么只有序号大于或者等于 2 的 Pod 会被更新到这个版本。并且，如果你删除或者重启了序号小于 2 的 Pod，等它再次启动后，也会保持原先的 5.7.2 版本，绝不会被升级到 5.7.23 版本。
 
-
-
-
-
-
-
-
-
-
-
-
+StatefulSet 可以说是 Kubernetes 项目中最为复杂的编排对象。
+```
