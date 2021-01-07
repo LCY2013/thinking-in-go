@@ -40,7 +40,10 @@ spec:
               mountPath: /mnt/config-map
         - name: clone-mysql
           #image: gcr.io/google-samples/xtrabackup:1.0
-          image: ipunktbs/xtrabackup:1.0.0
+          #image: ipunktbs/xtrabackup:1.0.0
+          #image: gcr.azk8s.cn/namespace/xtrabackup:1.0.0
+          #image: gcr.mirrors.ustc.edu.cn/google-samples/xtrabackup:1.0
+          image: ist0ne/xtrabackup:1.0
           command:
             - bash
             - "-c"
@@ -96,7 +99,10 @@ spec:
             timeoutSeconds: 1
         - name: xtrabackup
           #image: gcr.io/google-samples/xtrabackup:1.0
-          image: ipunktbs/xtrabackup:1.0.0
+          #image: ipunktbs/xtrabackup:1.0.0
+          #image: gcr.azk8s.cn/namespace/xtrabackup:1.0.0
+          #image: gcr.mirrors.ustc.edu.cn/google-samples/xtrabackup:1.0
+          image: ist0ne/xtrabackup:1.0
           ports:
             - name: xtrabackup
               containerPort: 3307
