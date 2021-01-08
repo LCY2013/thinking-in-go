@@ -1,3 +1,68 @@
+### StatefulSet (https://kubernetes.io/zh/docs/tutorials/stateful-application/basic-stateful-set/)[]
+```text
+StatefulSet 的核心功能，就是通过某种方式记录这些状态，然后在 Pod 被重新创建时，能够为新 Pod 恢复这些状态。    
+Headless Service: Service 是 Kubernetes 项目中用来将一组 Pod 暴露给外界访问的一种机制。比如，一个 Deployment 有 3 个 Pod，那么我就可以定义一个 Service。然后，用户只要能访问到这个 Service，它就能访问到某个具体的 Pod。
+那么，这个 Service 又是如何被访问的呢？
+1、第一种方式，是以 Service 的 VIP（Virtual IP，即：虚拟 IP）方式。比如：当我访问 10.0.23.1 这个 Service 的 IP 地址时，10.0.23.1 其实就是一个 VIP，它会把请求转发到该 Service 所代理的某一个 Pod 上。
+2、第二种方式，就是以 Service 的 DNS 方式。比如：这时候，只要我访问“my-svc.my-namespace.svc.cluster.local”这条 DNS 记录，就可以访问到名叫 my-svc 的 Service 所代理的某一个 Pod。
+    第一种处理方法，是 Normal Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，正是 my-svc 这个 Service 的 VIP，后面的流程就跟 VIP 方式一致了。
+    第二种处理方法，正是 Headless Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，直接就是 my-svc 代理的某一个 Pod 的 IP 地址。可以看到，这里的区别在于，Headless Service 不需要分配一个 VIP，而是可以直接以 DNS 记录的方式解析出被代理 Pod 的 IP 地址。
+Headless Service 对应的 YAML 文件 -> nginx-service.yaml :
+    所谓的 Headless Service，其实仍是一个标准 Service 的 YAML 文件。只不过，它的 clusterIP 字段的值是：None，即：这个 Service，没有一个 VIP 作为“头”。这也就是 Headless 的含义。所以，这个 Service 被创建后并不会被分配一个 VIP，而是会以 DNS 记录的方式暴露出它所代理的 Pod。
+    它所代理的所有 Pod 的 IP 地址，都会被绑定一个这样格式的 DNS 记录，如下所示：
+        <pod-name>.<svc-name>.<namespace>.svc.cluster.local
+      有了这个“可解析身份”，只要你知道了一个 Pod 的名字，以及它对应的 Service 的名字，你就可以非常确定地通过这条 DNS 记录访问到 Pod 的 IP 地址。
+创建一个StatefulSet.yaml，内容与nginx-deployment.yaml 的唯一区别，就是多了一个 serviceName=nginx 字段。
+这个字段的作用，就是告诉 StatefulSet 控制器，在执行控制循环（Control Loop）的时候，请使用 nginx 这个 Headless Service 来保证 Pod 的“可解析身份”。
+创建上面的两个API对象 (StatefulSet、Service)
+$ kubectl create -f nginx-service.yaml
+$ kubectl get service nginx
+$ kubectl create -f StatefulSet.yaml
+$ kubectl get statefulset web
+$ kubectl get pods -w -l app=nginx
+    NAME    READY   STATUS              RESTARTS   AGE
+    web-0   1/1     Running             0          50s
+    web-1   0/1     ContainerCreating   0          18s
+    web-1   1/1     Running             0          47s
+   通过上面这个 Pod 的创建过程，我们不难看到，StatefulSet 给它所管理的所有 Pod 的名字，进行了编号，编号规则是：-。
+   而且这些编号都是从 0 开始累加，与 StatefulSet 的每个 Pod 实例一一对应，绝不重复。
+   更重要的是，这些 Pod 的创建，也是严格按照编号顺序进行的。比如，在 web-0 进入到 Running 状态、并且细分状态（Conditions）成为 Ready 之前，web-1 会一直处于 Pending 状态。
+   备注：Ready 状态再一次提醒了我们，为 Pod 设置 livenessProbe 和 readinessProbe 的重要性。
+   当这两个 Pod 都进入了 Running 状态之后，你就可以查看到它们各自唯一的“网络身份”了。    
+$ kubectl exec web-0 -- sh -c 'hostname'     
+ web-0
+$ kubectl exec web-1 -- sh -c 'hostname'     
+ web-1
+$ for i in 0 1; do kubectl exec web-$i -- sh -c 'hostname'; done 
+这两个 Pod 的 hostname 与 Pod 名字是一致的，都被分配了对应的编号。接下来，我们再试着以 DNS 的方式，访问一下这个 Headless Service： 
+$ kubectl run -i --tty --image busybox:1.28.4 dns-test --restart=Never --rm /bin/sh
+/ # nslookup web-0.nginx    =========注意这里用1.28.4这个busybox镜像，最新的镜像可能存在问题
+如果这里拿不到这个准确的ip地址、可以用以下的流程操作
+$ kubectl exec web-0 -- sh -c 'cat /etc/hosts'
+    # Kubernetes-managed hosts file.
+    127.0.0.1	localhost
+    ::1	localhost ip6-localhost ip6-loopback
+    fe00::0	ip6-localnet
+    fe00::0	ip6-mcastprefix
+    fe00::1	ip6-allnodes
+    fe00::2	ip6-allrouters
+    10.244.1.94	web-0.nginx.default.svc.cluster.local	web-0
+/ # nslookup web-0.nginx.default.svc.cluster.local   
+/ # nslookup web-0.nginx.default  
+/ # ping web-0.nginx
+当前Terminal启动pod监听
+$ kubectl get pods -w -l app=nginx
+另外一个 Terminal 里把这两个“有状态应用”的 Pod 删掉：
+$ kubectl delete pods -l app=nginx
+可以看到，当我们把这两个 Pod 删除之后，Kubernetes 会按照原先编号的顺序，创建出了两个新的 Pod。并且，Kubernetes 依然为它们分配了与原来相同的“网络身份”：web-0.nginx 和 web-1.nginx。
+通过这种严格的对应规则，StatefulSet 就保证了 Pod 网络标识的稳定性。
+如果 web-0 是一个需要先启动的主节点，web-1 是一个后启动的从节点，那么只要这个 StatefulSet 不被删除，你访问 web-0.nginx 时始终都会落在主节点上，访问 web-1.nginx 时，则始终都会落在从节点上，这个关系绝对不会发生任何变化。
+$ kubectl run -i --tty --image busybox:1.28.4 dns-test --restart=Never --rm /bin/sh 
+/ # nslookup web-1.nginx
+重点: StatefulSet 这个控制器的主要作用之一，就是使用 Pod 模板创建 Pod 的时候，对它们进行编号，并且按照编号顺序逐一完成创建工作。
+    而当 StatefulSet 的“控制循环”发现 Pod 的“实际状态”与“期望状态”不一致，需要新建或者删除 Pod 进行“调谐”的时候，它会严格按照这些 Pod 编号的顺序，逐一完成这些操作。 
+```
+
 ### 部署一个mysql集群
 
 #### 需求
