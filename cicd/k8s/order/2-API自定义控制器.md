@@ -239,13 +239,115 @@ func (c *Controller) syncHandler(key string) error {
 
 可以看到，在这里，使用了 networksLister 来尝试获取这个 Key 对应的 Network 对象。这个操作，其实就是在访问本地缓存的索引。实际上，在 Kubernetes 的源码中，你会经常看到控制器从各种 Lister 里获取对象，比如：podLister、nodeLister 等等，它们使用的都是 Informer 和缓存机制。
 
+如果控制循环从缓存中拿不到这个对象（即：networkLister 返回了 IsNotFound 错误），那就意味着这个 Network 对象的 Key 是通过前面的“删除”事件添加进工作队列的。所以，尽管队列里有这个 Key，但是对应的 Network 对象已经被删除了。
 
+这时候，就需要调用 Neutron 的 API，把这个 Key 对应的 Neutron 网络从真实的集群里删除掉。而如果能够获取到对应的 Network 对象，就可以执行控制器模式里的对比“期望状态”和“实际状态”的逻辑了。
 
+自定义控制器“千辛万苦”拿到的这个 Network 对象，正是 APIServer 里保存的“期望状态”，即：用户通过 YAML 文件提交到 APIServer 里的信息。当然，在例子里，它已经被 Informer 缓存在了本地。
 
+那么，“实际状态”就是来自于集群。
 
+所以，我们的控制循环需要通过 Neutron API 来查询实际的网络情况。
+```text
+如果不存在，这就是一个典型的“期望状态”与“实际状态”不一致的情形。这时，就需要使用这个 Network 对象里的信息（比如：CIDR 和 Gateway），调用 Neutron API来创建真实的网络。
 
+如果存在，那么，就要读取这个真实网络的信息，判断它是否跟 Network 对象里的信息一致，从而决定是否要通过 Neutron 来更新这个已经存在的真实网络。
+```
+这样，就通过对比“期望状态”和“实际状态”的差异，完成了一次调协（Reconcile）的过程。
 
+至此，一个完整的自定义 API 对象和它所对应的自定义控制器，就编写完毕了。
 
+### [项目运行起来，查看一下它的工作情况](https://github.com/resouer/k8s-controller-custom-resource)
+可以直接编译这个项目，也可以直接使用编译好的二进制文件（samplecrd-controller）
 
+```text
+Clone repo:
+$ git clone https://github.com/resouer/k8s-controller-custom-resource
+$ cd k8s-controller-custom-resource
 
+Prepare build environment:
+$ go get github.com/tools/godep
+$ godep restore
 
+Build and run:
+You can also use samplecrd-controller to create a Deployment and run it in Kubernetes. Note in this case, you don't need to specify -kubeconfig in CMD as default InClusterConfig will be used.
+$ go build -o samplecrd-controller .
+$ ./samplecrd-controller -kubeconfig=$HOME/.kube/config -alsologtostderr=true
+
+You should create the CRD of Network first:
+$ kubectl apply -f crd/network.yaml
+You can then trigger an event by creating a Network API instance:
+CURD the Network API instance, and check the logs of controller.
+$ kubectl apply -f example/example-network.yaml
+```
+可以看到，自定义控制器被启动后，一开始会报错，提示network CRD不存在。
+
+这是因为，此时 Network 对象的 CRD 还没有被创建出来，所以 Informer 去 APIServer里“获取”（List）Network 对象时，并不能找到 Network 这个 API 资源类型的定义，即：
+
+所以，接下来我就需要创建 Network 对象的 CRD。
+
+在另一个shell环境的窗口执行：
+```shell
+$ kubectl apply -f crd/network.yaml
+```
+这时候，你就会看到控制器的日志恢复了正常，控制循环启动成功。
+
+接下来，就可以进行 Network 对象的增删改查操作了。
+
+首先，创建一个 Network 对象：
+```text
+$ cat example/example-network.yaml 
+apiVersion: samplecrd.k8s.io/v1
+kind: Network
+metadata:
+  name: example-network
+spec:
+  cidr: "192.168.0.0/16"
+  gateway: "192.168.0.1"
+  
+$ kubectl apply -f example/example-network.yaml
+```
+这时候，查看一下控制器的输出。
+
+以上，就是编写和使用自定义控制器的全部流程了。
+
+实际上，这套流程不仅可以用在自定义 API 资源上，也完全可以用在 Kubernetes 原生的默认 API 对象上。
+
+比如，在 main 函数里，除了创建一个 Network Informer 外，还可以初始化一个Kubernetes 默认 API 对象的 Informer 工厂，比如 Deployment 对象的 Informer。这个具体做法如下所示：
+```text
+fun main(){
+...
+kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
+controller := NewController(kubeClient, exampleClient,  
+            kubeInformerFactory.Apps().V1().Deployments(),  
+            networkInformerFactory.Samplecrd().V1().Networks())  
+go kubeInformerFactory.Start(stopCh)
+...
+}
+```
+在这段代码中，首先使用 Kubernetes 的 client（kubeClient）创建了一个工厂；
+
+然后，用跟 Network 类似的处理方法，生成了一个 Deployment Informer；
+
+接着，把 Deployment Informer 传递给了自定义控制器；当然，也要调用 Start 方法来启动这个 Deployment Informer。
+
+而有了这个 Deployment Informer 后，这个控制器也就持有了所有 Deployment 对象的信息。接下来，它既可以通过 deploymentInformer.Lister() 来获取 Etcd 里的所有Deployment 对象，也可以为这个 Deployment Informer 注册具体的 Handler 来。
+
+更重要的是，这就使得在这个自定义控制器里面，可以通过对自定义 API 对象和默认API 对象进行协同，从而实现更加复杂的编排功能。
+
+比如：用户每创建一个新的 Deployment，这个自定义控制器，就可以为它创建一个对应的 Network 供它使用。
+
+### 自定义控制器几个重要的概念和机制
+所谓的 Informer，就是一个自带缓存和索引机制，可以触发 Handler 的客户端库。这个本地缓存在 Kubernetes 中一般被称为 Store，索引一般被称为 Index。
+
+Informer 使用了 Reflector 包，它是一个可以通过 ListAndWatch 机制获取并监视 API 对象变化的客户端封装。
+
+Reflector 和 Informer 之间，用到了一个“增量先进先出队列”进行协同。而 Informer与要编写的控制循环之间，则使用了一个工作队列来进行协同。
+
+在实际应用中，除了控制循环之外的所有代码，实际上都是 Kubernetes 为你自动生成的，即：pkg/client/{informers, listers, clientset}里的内容。
+
+而这些自动生成的代码，提供了一个可靠而高效地获取 API 对象“期望状态”的编程库。
+
+所以，接下来，作为开发者，就只需要关注如何拿到“实际状态”，然后如何拿它去跟“期望状态”做对比，从而决定接下来要做的业务逻辑即可。
+
+以上内容，就是 Kubernetes API 编程范式的核心思想。
