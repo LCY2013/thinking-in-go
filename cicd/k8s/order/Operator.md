@@ -394,7 +394,7 @@ Cluster 对象的第二个工作，则是启动该集群所对应的控制循环
 
 以上，就是一个 Etcd Operator 的工作原理了。
 
-##### 第一个问题是，在 StatefulSet 里，它为 Pod 创建的名字是带编号的，这样就把整个集群的拓扑状态固定了下来（比如：一个三节点的集群一定是由名叫 web-0、web-1 和 web-2的三个 Pod 组成）。可是，在 Etcd Operator 里，为什么我们使用随机名字就可以了呢？123456789/usr/local/bin/etcd  --data-dir=/var/etcd/data  --name=example-etcd-cluster-v6v6s6stxd  --initial-advertise-peer-urls=http://example-etcd-cluster-v6v6s6stxd.example-etcd-clus  --listen-peer-urls=http://0.0.0.0:2380  --listen-client-urls=http://0.0.0.0:2379  --advertise-client-urls=http://example-etcd-cluster-v6v6s6stxd.example-etcd-cluster.de  --initial-cluster=example-etcd-cluster-mbzlg6sd56=http://example-etcd-cluster-mbzlg6sd  --initial-cluster-state=existing复制代码
+##### 第一个问题是，在 StatefulSet 里，它为 Pod 创建的名字是带编号的，这样就把整个集群的拓扑状态固定了下来（比如：一个三节点的集群一定是由名叫 web-0、web-1 和 web-2的三个 Pod 组成）。可是，在 Etcd Operator 里，为什么我们使用随机名字就可以了呢？
 这是因为，Etcd Operator 在每次添加 Etcd 节点的时候，都会先执行 etcdctl memberadd <Pod 名字 >；每次删除节点的时候，则会执行 etcdctl member remove <Pod 名字 >。这些操作，其实就会更新 Etcd 内部维护的拓扑信息，所以 Etcd Operator 无需在集群外部通过编号来固定这个拓扑关系。
 
 ##### 第二个问题是，为什么我没有在 EtcdCluster 对象里声明 Persistent Volume？
