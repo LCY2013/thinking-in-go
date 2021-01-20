@@ -465,7 +465,7 @@ $ sed -e 's|<full-s3-path>|mybucket/etcd.backup|g' \
     example/etcd-restore-operator/restore_cr.yaml \
     | kubectl create -f -
 ```
-上面例子里的 EtcdRestore 对象（ [restore_cr.yaml](https://github.com/coreos/etcd-operator/blob/master/example/etcd-restore-operator/restore_cr.yaml)），会指定它要恢复的 Etcd 集群的名字和备份数据所在的 S3 存储的访问信息。
+上面例子里的 EtcdRestore 对象（ [restore_cr.yaml](https://github.com/coreos/etcd-operator/blob/master/example/etcd-restore-operator/restore_cr.yaml) ），会指定它要恢复的 Etcd 集群的名字和备份数据所在的 S3 存储的访问信息。
 
 而当一个 EtcdRestore 对象成功创建后，Etcd Restore Operator 就会通过上述信息，恢复出一个全新的 Etcd 集群。然后，Etcd Operator 会把这个新集群直接接管过来，从而重新进入可用的状态。
 
