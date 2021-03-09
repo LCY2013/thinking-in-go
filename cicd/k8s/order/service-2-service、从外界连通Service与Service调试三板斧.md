@@ -93,6 +93,28 @@ KUBE-SVC-67RL4FN6JRUPOJYM 其实就是一组随机模式的 iptables 规则。�
 ```
 当然，这也就意味着如果在一台宿主机上，没有任何一个被代理的 Pod 存在，比如上图中的 node 2，那么你使用 node 2 的 IP 地址访问这个 Service，就是无效的。此时，你的请求会直接被 DROP 掉。
 
+#### [什么是external-traffic-policy ?](https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies)
+在k8s的Service对象（申明一条访问通道）中，有一个“externalTrafficPolicy”字段可以设置。有2个值可以设置：Cluster或者Local。
+```text
+1）Cluster表示：流量可以转发到其他节点上的Pod。
+
+2）Local表示：流量只发给本机的Pod。
+```
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: example-service
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - port: 8765
+    targetPort: 9376
+  selector:
+    app: example
+  type: LoadBalancer
+```
+
 从外部访问 Service 的第二种方式，适用于公有云上的 Kubernetes 服务。这时候，可以指定一个 LoadBalancer 类型的 Service，如下所示：
 ```yaml
 ---
@@ -193,11 +215,25 @@ KUBE-SVC-(hash) 规则对应的负载均衡链，这些规则的数目应该与 
 
 当然，还有一种典型问题，就是 Pod 没办法通过 Service 访问到自己。这往往就是因为 kubelet 的 hairpin-mode 没有被正确设置。你只需要确保将 kubelet 的 hairpin-mode 设置为 hairpin-veth 或者 promiscuous-bridge 即可。
 
+其中，在 hairpin-veth 模式下，应该能看到 CNI 网桥对应的各个 VETH 设备，都将 Hairpin 模式设置为了 1，如下所示：
+```text
+$ for d in /sys/devices/virtual/net/cni0/brif/veth*/hairpin_mode; do echo "$d = $(cat $d)"; done
+/sys/devices/virtual/net/cni0/brif/veth4bfbfe74/hairpin_mode = 1
+/sys/devices/virtual/net/cni0/brif/vethfc2a18c5/hairpin_mode = 1
+```
 
+而如果是 promiscuous-bridge 模式的话，应该看到 CNI 网桥的混杂模式（PROMISC）被开启，如下所示：
+```text
+$ ifconfig cni0 |grep PROMISC
+UP BROADCAST RUNNING PROMISC MULTICAST  MTU:1460  Metric:1
+```
 
+从外部访问 Service 的三种方式（NodePort、LoadBalancer 和 External Name）。
 
+通过上述讲解不难看出，所谓 Service，其实就是 Kubernetes 为 Pod 分配的、固定的、基于 iptables（或者 IPVS）的访问入口。而这些访问入口代理的 Pod 信息，则来自于 Etcd，由 kube-proxy 通过控制循环来维护。
 
+并且，你可以看到，Kubernetes 里面的 Service 和 DNS 机制，也都不具备强多租户能力。比如，在多租户情况下，每个租户应该拥有一套独立的 Service 规则（Service 只应该看到和代理同一个租户下的 Pod）。再比如 DNS，在多租户情况下，每个租户应该拥有自己的 kube-dns（kube-dns 只应该为同一个租户下的 Service 和 Pod 创建 DNS Entry）。
 
+当然，在 Kubernetes 中，kube-proxy 和 kube-dns 其实也是普通的插件而已。你完全可以根据自己的需求，实现符合自己预期的 Service。
 
-
-
+### 为什么 Kubernetes 要求 externalIPs 必须是至少能够路由到一个 Kubernetes 的节点？
