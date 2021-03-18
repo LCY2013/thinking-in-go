@@ -189,6 +189,8 @@ hostnames   10.244.0.5:9376,10.244.0.6:9376,10.244.0.7:9376
 
 而如果 Endpoints 正常，那么你就需要确认 kube-proxy 是否在正确运行。在我们通过 kubeadm 部署的集群里，你应该看到 kube-proxy 输出的日志如下所示：
 ```text
+# kubectl logs --tail 200 -f kube-proxy-67mpf -n kube-system | more
+
 I1027 22:14:53.995134    5063 server.go:200] Running in resource-only container "/kube-proxy"
 I1027 22:14:53.998163    5063 server.go:247] Using iptables Proxier.
 I1027 22:14:53.999055    5063 server.go:255] Tearing down userspace rules. Errors here are acceptable.
