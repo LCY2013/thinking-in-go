@@ -126,7 +126,7 @@ func main() {
 	fmt.Printf("%v\n", t)
 	fmt.Printf("%+v\n", t)
 	fmt.Printf("%#v\n", t)
-	//fmt.Printf("%#v\n", timeZone)
+	fmt.Printf("%#v\n", timeZone)
 
 	/*
 		(请注意其中的 & 符号)当遇到 string 或 []byte 值时， 可使用 %q 产生带引号的字符串;而 格式 %#q 会尽可能使用反引号。
@@ -345,6 +345,18 @@ func main() {
 	//从这里开始，就与 C 有些不同了。首先，像%d 这样的数值格式并不接受表示符号或大小的标记， 打印例程会根据实参的类型来决定这些属性。
 	fmt.Printf("%d %x; %d %x\n", x, x, int64(x), int64(x))
 
+	//若你只想要默认的转换，如使用十进制的整数，你可以使用通用的格式 %v(对应 “值”);
+	//其 结果与 Print 和 Println 的输出完全相同。
+	//此外，这种格式还能打印任意值，甚至包括数组、 结构体和映射。 以下是打印上一节中定义的时区映射的语句。
+	fmt.Printf("%v\n", timeZone)
+
+	//当然，映射中的键可能按任意顺序输出。
+	//当打印结构体时，改进的格式 %+v 会为结构体的每 个字段添上字段名，
+	//而另一种格式 %#v 将完全按照 Go 的语法打印值。
+	fmt.Printf("%v\n", t)
+	// 如果你需要像指向 T 的指针那样打印类型 T 的值， String 的接收者就必须是值类型的;上 面的例子中接收者是一个指针， 因为这对结构来说更高效而通用。
+	// 我们的 String 方法也可调用 Sprintf， 因为打印例程可以完全重入并按这种方式封装。不过要 理解这种方式，还有一个重要的细节: 请勿通过调用 Sprintf 来构造 String 方法，因为它会无 限递归你的的 String 方法。
+
 }
 
 //Sum
@@ -387,4 +399,31 @@ type T struct {
 	a int
 	b float64
 	c string
+}
+
+func (t *T) String() string {
+	return fmt.Sprintf("%d/%g/%q", t.a, t.b, t.c)
+}
+
+// MyString 下列演示错误无限递归,Sprintf会无限调用某个类型的String方法
+type MyString string
+
+/*func (ms MyString) String() string {
+	return fmt.Sprintf("MyString=%s",ms)
+}*/
+// 要解决这个问题也很简单:将该实参转换为基本的字符串类型，它没有这个方法。
+func (ms MyString) String() string {
+	return fmt.Sprintf("MyString=%s", string(ms))
+}
+
+// Min 获取最大的值
+func Min(array ...int) int {
+	// 最大的int
+	min := int(^uint(0) >> 1)
+	for _, i := range array {
+		if i < min {
+			min = i
+		}
+	}
+	return min
 }
