@@ -65,6 +65,10 @@ const (
 	YB
 )
 
+/*
+在这里用Sprintf实现 ByteSize 的 String 方法很安全(不会无限递归)，这倒不是因为类型转换，而是它以%f调用了Sprintf，
+它并不是一种字符串格式:Sprintf 只会在它需要字符串 时才调用 String 方法，而 %f 需要一个浮点数值。
+*/
 // String 字节大小转换
 func (b ByteSize) String() string {
 	switch {
