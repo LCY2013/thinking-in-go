@@ -29,13 +29,13 @@ Pointers vs. Values
 */
 type ByteSlice []byte
 
-// Append
+// AppendValue
 /*
 下面这样仍然需要该方法返回更新后的切片。
 */
-//func (slice ByteSlice) Append(data []byte) []byte {
-//	return append(slice, data...)
-//}
+func (slice ByteSlice) AppendValue(data []byte) []byte {
+	return append(slice, data...)
+}
 
 //Append
 /*
@@ -79,4 +79,12 @@ func main() {
 		return
 	}
 	fmt.Println(length)
+
+	c := &ByteSlice{}
+	*c = c.AppendValue([]byte("hello"))
+	fmt.Printf("%T\t%#v\n", c, c)
+
+	d := ByteSlice{}
+	d = d.AppendValue([]byte("world"))
+	fmt.Printf("%T\t%+v\n", d, d)
 }
