@@ -69,6 +69,8 @@ var _ json.Marshaler = (*RawMessage)(nil)
 作为约定，仅当代码中不存在静态类型转换时才能这种声明，毕竟这是种罕见的情况。
 */
 
+//var _ json.Marshaler = (*RawMessage)(nil)
+
 func MarshalerJson() {
-	//var _ json.Marshaler = (*RawMessage)(nil)
+
 }
