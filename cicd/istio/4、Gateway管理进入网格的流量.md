@@ -134,3 +134,18 @@ spec:
 
 > curl -s -I -HHost:www.fufeng.com "http://192.168.0.180:30371/health"
 
+### 查询网关和虚拟服务信息
+```shell
+[root@b-k8s-master-180 istio-1.10.1]# kubectl get gw
+NAME               AGE
+bookinfo-gateway   3h13m
+test-gateway       2m8s
+[root@b-k8s-master-180 istio-1.10.1]# kubectl get vs
+NAME           GATEWAYS               HOSTS                AGE
+bookinfo       ["bookinfo-gateway"]   ["*"]                3h13m
+details                               ["details"]          66m
+productpage                           ["productpage"]      66m
+ratings                               ["ratings"]          66m
+reviews                               ["reviews"]          66m
+test-gateway   ["test-gateway"]       ["www.fufeng.com"]   2m12s
+```
