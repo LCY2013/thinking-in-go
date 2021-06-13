@@ -1,3 +1,7 @@
+- [部署 Bookinfo](https://istio.io/latest/docs/examples/bookinfo/)
+
+- [示例地址](https://istio.io/latest/zh/docs/tasks/traffic-management/ingress/ingress-control/)
+
 ### 网关-用 Gateway 管理进入网格的流量
 
 - 什么是网关？

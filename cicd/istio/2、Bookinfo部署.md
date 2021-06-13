@@ -1,4 +1,4 @@
-- 部署 Bookinfo
+- [部署 Bookinfo](https://istio.io/latest/docs/examples/bookinfo/) 
 
 ```text
 注入 Sidecar
