@@ -90,6 +90,24 @@ func NewJob(command string, logger *log.Logger) *Job {
     return &Job{command, logger}
 }
 
+或通过复合字面:
+job := &Job{command, log.New(os.Stderr, "Job: ", log.Ldate)}
+
+若我们需要直接引用内嵌字段，可以忽略包限定名，直接将该字段的类型名作为字段名，就像我们在 ReaderWriter 结构体的 Read 方法中做的那样。
+若我们需要访问 Job 类型的变量 job 的 *log.Logger ， 可以直接写作 job.Logger。若我们想精炼 Logger 的方法时， 这会非 常有用。
+func (job *Job) Logf(format string, args ...interface{}){
+  job.Logger.Logf("%q: %s", job.Command, fmt.Sprintf(format, args...))
+}
+
+内嵌类型会引入命名冲突的问题，但解决规则却很简单。
+首先，字段或方法 X 会隐藏该类型中更深层嵌套的其它项 X。
+若 log.Logger 包含一个名为 Command 的字段或方法，Job 的 Command 字段会覆盖它。
+
+其次，若相同的嵌套层级上出现同名冲突，通常会产生一个错误。
+若 Job 结构体中包含名为 Logger 的字段或方法，再将 log.Logger 内嵌到其中的话就会产生错误。
+然而，若重名永远不会在该类型定义之外的程序中使用，那就不会出错。
+这种限定能够在外部嵌套类型发生修改时提供某种保护。
+因此，就算添加的字段与另一个子类型中的字段相冲突，只要这两个相同的字段永远不会被使用就没问题。
 */
 
 type Job struct {
@@ -99,6 +117,10 @@ type Job struct {
 
 func NewJob(command string, logger *log.Logger) *Job {
 	return &Job{command, logger}
+}
+
+func (job *Job) Logf(format string, args ...interface{}) {
+	job.Logger.Printf(format, args)
 }
 
 func JobUseFunc() {
