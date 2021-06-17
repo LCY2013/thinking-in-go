@@ -18,10 +18,17 @@
 package main
 
 import (
-	"fmt"
 	"fufeng.org/effective/errors"
+	"time"
 )
 
 func main() {
-	fmt.Println(errors.CubeRoot(0))
+	// 示例一
+	// fmt.Println(errors.CubeRoot(0))
+
+	// 示例二
+	works := make(chan *errors.Work)
+	errors.Server(works)
+	errors.SendMessage(works)
+	time.Sleep(5 * time.Second)
 }
