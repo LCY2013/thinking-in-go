@@ -2,7 +2,7 @@
 
 ```text
 注入 Sidecar
-自动:$ kubectl label namespace default istio- injection=enabled
+自动:$ kubectl label namespace default istio-injection=enabled
 手动: $ kubectl apply -f < (istioctl kube-inject -f samples/bookinfo/platform/kube/bookinfo.yaml)
 
 部署应用
@@ -78,6 +78,8 @@ $ echo "http://$GATEWAY_URL/productpage"
 
 ============== 在dashboard中展示 ================
 View the dashboard
+
+********************  dashboard  *******************
 
 1、Install Kiali and the other addons and wait for them to be deployed.
 $ kubectl apply -f samples/addons

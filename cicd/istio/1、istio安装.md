@@ -13,9 +13,6 @@
 > export PATH=$PWD/bin:$PATH
 
 - 开始安装istio 到k8s集群
-
-> istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=ALLOW_ANY  -y
-
 > istioctl install --set profile=demo -y
 ```text
 Detected that your cluster does not support third party JWT authentication. Falling back to less secure first party JWT. See https://istio.io/v1.10/docs/ops/best-practices/security/#configure-third-party-service-account-tokens for details.
