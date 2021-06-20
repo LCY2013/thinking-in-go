@@ -1,3 +1,6 @@
+### [配置 Pod 的服务质量](https://v1-19.docs.kubernetes.io/zh/docs/tasks/configure-pod-container/quality-service-pod/)
+### [为容器和 Pod 分配内存资源](https://v1-19.docs.kubernetes.io/zh/docs/tasks/configure-pod-container/assign-memory-resource/)
+### [为容器和 Pods 分配 CPU 资源](https://v1-19.docs.kubernetes.io/zh/docs/tasks/configure-pod-container/assign-cpu-resource/)
 ### Kubernetes 的资源模型与资源管理
 作为一个容器集群编排与管理项目，Kubernetes 为用户提供的基础设施能力，不仅包括了我在前面为你讲述的应用定义和描述的部分，还包括了对应用的资源管理和调度的处理。
 
