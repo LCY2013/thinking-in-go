@@ -1,0 +1,22 @@
+[
+  {
+    "site": "npr",
+    "link": "http://www.npr.org/rss/rss.php?id=1001",
+    "type": "rss"
+  },
+  {
+    "site": "npr",
+    "link": "http://www.npr.org/rss/rss.php?id=1002",
+    "type": "rss"
+  },
+  {
+    "site": "npr",
+    "link": "http://www.npr.org/rss/rss.php?id=1003",
+    "type": "rss"
+  },
+  {
+    "site": "npr",
+    "link": "http://www.npr.org/rss/rss.php?id=1004",
+    "type": "rss"
+  }
+]
