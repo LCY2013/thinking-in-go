@@ -1,8 +1,11 @@
 package main
 
-import "fufeng.org/sample04/slice"
+import maps "fufeng.org/sample04/map"
 
 func main() {
-	slice.FuncSlice()
+	// slice.FuncSlice()
 
+	// maps.MapFunc()
+
+	maps.FuncToFuncMap()
 }
