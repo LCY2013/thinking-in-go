@@ -34,6 +34,28 @@ func (u *user) notify() {
 		u.email)
 }
 
+// person 定义一个人类型
+type person struct {
+	name  string
+	email string
+}
+
+// notify 是使用指针接收者
+func (p *person) notify() {
+	fmt.Printf("person info %s<%s>\n", p.name, p.email)
+}
+
+// man
+type man struct {
+	id  string
+	age int
+}
+
+// notify 是使用指针接收者
+func (m *man) notify() {
+	fmt.Printf("man info %s<%s>\n", m.id, m.age)
+}
+
 func main() {
 	u := user{"Bill", "bill@email.com"}
 
@@ -43,6 +65,23 @@ func main() {
 	// sendNotification(u) // 不能将u（user）作为sendNotification的参数类型notifier，notifier是一个指针的接受者声明
 
 	sendNotification(&u)
+
+	p := person{"1", "18"}
+	sendNotification(&p)
+
+	u1 := user(p)
+	sendNotification(&u1)
+
+	u2 := user(p)
+	sendNotification(&u2)
+
+	u3 := user{"1", "18"}
+
+	m := man{"id", 18}
+	sendNotification(&m)
+
+	fmt.Println(u1 == u2)
+	fmt.Println(u2 == u3)
 }
 
 // sendNotification 接受一个实现了notifier接口的值，并发送通知
