@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	v3 "fufeng.org/standard/coder/json/v3"
+	"fufeng.org/standard/decoder/json/v3"
 	"log"
 )
 
 func main() {
 	// 将字符串反序列化成变量
 	var c map[string]interface{}
-	err := json.Unmarshal([]byte(v3.JSON), &c)
+	err := json.Unmarshal([]byte(v2.JSON), &c)
 	if err != nil {
 		log.Println("ERROR:", err)
 		return

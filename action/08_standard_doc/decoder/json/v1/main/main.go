@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	v1 "fufeng.org/standard/coder/json/v1"
+	v12 "fufeng.org/standard/decoder/json/v1"
 	"log"
 	"net/http"
 )
@@ -19,7 +19,7 @@ func main() {
 	defer resp.Body.Close()
 
 	// 将 json 响应码解码成结构体类型
-	var gr v1.GgResponse
+	var gr v12.GgResponse
 	err = json.NewDecoder(resp.Body).Decode(&gr)
 	if err != nil {
 		log.Println("ERROR:", err)
