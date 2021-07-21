@@ -11,7 +11,7 @@ import (
 // HTML 渲染
 func formatAsDate(t time.Time) string {
 	date, month, day := t.Date()
-	return fmt.Sprintf("%d%02d/%02d", date, month, day)
+	return fmt.Sprintf("%d/%02d/%02d", date, month, day)
 }
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		"formatAsDate": formatAsDate,
 	})
 
-	router.LoadHTMLGlob("./testdata/*")
+	router.LoadHTMLGlob("template/testdata/*")
 	//router.LoadHTMLFiles("./testdata/raw.tmpl")
 
 	router.GET("/raw", func(context *gin.Context) {
