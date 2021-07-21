@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// HTML 渲染
 func formatAsDate(t time.Time) string {
 	date, month, day := t.Date()
 	return fmt.Sprintf("%d%02d/%02d", date, month, day)
