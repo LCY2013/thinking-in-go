@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/autotls v0.0.3
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.4.1
+	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.3.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
