@@ -29,9 +29,9 @@ var redisLock *redsync.Redsync
 
 func InitRedis(host, port, password string) error {
 	pool = &redis.Pool{
-		MaxIdle:     20,
+		MaxIdle:     100,
 		IdleTimeout: 240 * time.Second,
-		MaxActive:   50,
+		MaxActive:   100,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", host, port))
 			if err != nil {
