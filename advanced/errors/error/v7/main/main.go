@@ -1,5 +1,11 @@
 package main
 
+import (
+	"errors"
+	"fmt"
+	"io"
+)
+
 /*
 对于真正意外的情况，那些表示不可恢复的程序错误，例如索引越界、不可恢复的环境问题、栈溢出，我们才使用 panic。对于其他的错误情况，我们应该是期望使用 error 来进行判定。
 you only need to check the error value if you care about the result.  -- Dave
@@ -12,3 +18,11 @@ My point isn’t that exceptions are bad. My point is that exceptions are too ha
 完全交给你来控制 error。
 Error are values。
 */
+
+func main() {
+	// go 1.13 后error使用
+	err := fmt.Errorf("wrapping error : [%w]", io.EOF)
+	if errors.Is(err, io.EOF) {
+		fmt.Printf("%+v\n", err)
+	}
+}

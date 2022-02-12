@@ -32,7 +32,7 @@ func main() {
 
 // serveDebugV1 开启 go 的debug获取火焰图等信息
 func serveDebugV1() {
-	http.ListenAndServe("127.0.0.1:8001", http.DefaultServeMux)
+	_ = http.ListenAndServe("127.0.0.1:8001", http.DefaultServeMux)
 }
 
 // serveDebugV2 开启 go 的debug获取火焰图等信息
