@@ -6,7 +6,7 @@ import "fmt"
 // 修复v4版本
 func main() {
 	var ben = &Ben{"Ben"}
-	var jerry = &Jerry{field2: 2}
+	var jerry = &Jerry{field1: nil}
 	var maker IceCreamMaker = ben
 
 	var loop0, loop1 func()
@@ -45,11 +45,11 @@ func (maker *Ben) Hello() {
 }
 
 type Jerry struct {
-	field2 int
 	//name string
 	field1 *[5]byte
+	//field2 int
 }
 
 func (maker *Jerry) Hello() {
-	fmt.Printf("Jerry says, \"Hello my name is %s\"\n", maker.field1)
+	fmt.Printf("Jerry says, \"Hello my name is %d \"\n", maker.field1)
 }
