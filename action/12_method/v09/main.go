@@ -75,7 +75,9 @@ func main() {
 	}
 	var sl = make([]byte, len("hello, go"))
 	_, _ = s.Reader.Read(sl)
+	_, _ = s.Read(sl)
 	fmt.Println(string(sl)) // hello, go
 	s.MyInt.Add(5)
+	s.Add(5)
 	fmt.Println(*(s.MyInt)) // 22
 }
