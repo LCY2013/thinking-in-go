@@ -1,6 +1,6 @@
 module cargo
 
-go 1.15
+go 1.18
 
 require (
 	github.com/go-chi/chi v4.1.2+incompatible

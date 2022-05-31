@@ -1,6 +1,6 @@
 module register-kit
 
-go 1.15
+go 1.18
 
 require (
 	github.com/go-kit/kit v0.10.0

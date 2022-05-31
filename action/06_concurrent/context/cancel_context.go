@@ -53,7 +53,8 @@ Go语言context标准库的Context类型提供了一个Done()方法，该方法�
 举例来说，假设一个HTTP服务器需要花费两秒钟来处理一个请求。
 如果在处理完成之前请求被取消，我们想让程序能立即中断不再继续执行下去：
 */
-func main() {
+//func main() {
+func main_() {
 	// 创建一个监听8080端口的服务器
 	err := http.ListenAndServe(":8080", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		ctx := request.Context()

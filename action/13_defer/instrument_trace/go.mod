@@ -1,5 +1,5 @@
 module github.com/lcy2013/instrument_trace
 
-go 1.17
+go 1.18
 
 require golang.org/x/tools v0.1.9

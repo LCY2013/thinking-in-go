@@ -1,3 +1,3 @@
 module fufeng.org/standard
 
-go 1.16
+go 1.18
