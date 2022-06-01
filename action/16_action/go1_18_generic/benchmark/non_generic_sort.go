@@ -1,4 +1,4 @@
-package main
+package benchmark
 
 func siftDownOrdered(data []int, lo, hi, first int) {
 	root := lo
