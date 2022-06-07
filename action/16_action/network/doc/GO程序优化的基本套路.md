@@ -241,6 +241,12 @@ Serving web UI on http://localhost:9090
 go tool pprof 命令默认会从 http://192.168.10.18:6060/debug/pprof/profile 服务上，采集 CPU 类型的性能剖析数据，然后打开本地浏览器，默认显示如下页面：
 ![go采集CPU类型的性能剖析数据](go采集CPU类型的性能剖析数据.png)
 
+```text
+$ go test -bench . -cpuprofile cpu.out
+
+$ go tool pprof cpu.out
+```
+
 debug/pprof/profile 提供的是 CPU 的性能采样数据。CPU 类型采样数据是性能剖析中最常见的采样数据类型。
 
 一旦启用 CPU 数据采样，Go 运行时会每隔一段短暂的时间（10ms）就中断一次（由 SIGPROF 信号引发），并记录当前所有 goroutine 的函数栈信息。
