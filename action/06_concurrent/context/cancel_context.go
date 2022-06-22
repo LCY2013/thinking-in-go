@@ -72,9 +72,9 @@ func main_() {
 			if err != nil {
 				return
 			}
-		case <-ctx.Done():
+		case res := <-ctx.Done():
 			// 如果处理完成前取消了，在STDERR中记录请求被取消的消息
-			_, err = fmt.Fprint(os.Stderr, "request cancelled\n")
+			_, err = fmt.Fprintf(os.Stderr, "request cancelled: %s\n", res)
 			if err != nil {
 				return
 			}
