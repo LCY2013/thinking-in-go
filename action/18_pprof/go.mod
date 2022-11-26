@@ -2,6 +2,8 @@ module pprof
 
 go 1.19
 
+require mosn.io/holmes v1.0.2
+
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
@@ -11,6 +13,5 @@ require (
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	mosn.io/api v0.0.0-20210204052134-5b9a826795fd // indirect
-	mosn.io/holmes v1.0.2 // indirect
 	mosn.io/pkg v0.0.0-20211217101631-d914102d1baf // indirect
 )

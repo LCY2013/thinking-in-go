@@ -11,6 +11,13 @@ require (
 	github.com/jinzhu/gorm v1.9.14
 )
 
+require (
+	github.com/go-logfmt/logfmt v0.5.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.0.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+)
+
 //github.com/go-kit/kit@v0.10.0 // Go -k it 框架
 //github.com/go-redsync/redsync@v1.4.2 // Redis 分布式锁
 //github.com/go-sql-driver/mysql@v1.5.0 // mysql 驱动
