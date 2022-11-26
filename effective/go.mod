@@ -1,3 +1,3 @@
 module fufeng.org/effective
 
-go 1.18
+go 1.19

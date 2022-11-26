@@ -936,7 +936,7 @@ type anySlice[T any] []T // 代码等价于 type anySlice[T interface{}] []T
 // any is an alias for interface{} and is equivalent to interface{} in all ways.
 type any = interface{}
 
-所以从 Go 1.18 开始，所有可以用到空接口的地方其实都可以直接替换为any，如：
+所以从 go 1.19 开始，所有可以用到空接口的地方其实都可以直接替换为any，如：
 
 var s []any // 等价于 var s []interface{}
 var m map[string]any // 等价于 var m map[string]interface{}
@@ -1046,7 +1046,7 @@ func (s StringReadWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-//  BytesReadWriter 类型BytesReadWriter 没有实现接口 Readwriter
+// BytesReadWriter 类型BytesReadWriter 没有实现接口 Readwriter
 type BytesReadWriter []byte
 
 func (s BytesReadWriter) Read(p []byte) (n int, err error) {

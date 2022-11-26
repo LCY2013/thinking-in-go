@@ -1,6 +1,6 @@
 module demo1
 
-go 1.18
+go 1.19
 
 require (
 	github.com/lcy2013/workerpool v1.0.0

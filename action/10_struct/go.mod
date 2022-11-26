@@ -1,3 +1,3 @@
 module fufeng.org/struct
 
-go 1.18
+go 1.19

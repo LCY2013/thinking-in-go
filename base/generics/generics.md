@@ -1,4 +1,4 @@
-### GO 1.18 泛型的简单尝试
+### go 1.19 泛型的简单尝试
 
 ### 官方示例
 
@@ -41,7 +41,7 @@ type Number interface {
 
 我们来举个例子：现在我们声明一个以 int64 为基础类型，取名为testInt
 
-```go
+```
 type testInt int64
 
 type Number interface {
