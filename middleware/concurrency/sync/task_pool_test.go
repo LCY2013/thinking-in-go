@@ -1,8 +1,10 @@
 package sync
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestNewTaskPool(t *testing.T) {
@@ -27,16 +29,18 @@ func TestNewTaskPool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tp := NewTaskPool(tt.args.runSize, tt.args.queueSize)
-		for _, ctx := range tt.args.content {
-			temCtx := ctx
-			_ = tp.Run(func() {
-				fmt.Println(temCtx)
-			})
-		}
-		tp.Stop()
-		err := tp.Run(func() {
-
-		})
-		fmt.Println(err)
+		go func() {
+			for _, ctx := range tt.args.content {
+				temCtx := ctx
+				if err := tp.Run(func() {
+					time.Sleep(time.Second * 1)
+					fmt.Println(temCtx)
+				}); err != nil {
+					break
+				}
+			}
+		}()
+		time.Sleep(time.Second * 1)
+		tp.Stop(context.Background())
 	}
 }
