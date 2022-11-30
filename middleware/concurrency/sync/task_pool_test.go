@@ -29,9 +29,14 @@ func TestNewTaskPool(t *testing.T) {
 		tp := NewTaskPool(tt.args.runSize, tt.args.queueSize)
 		for _, ctx := range tt.args.content {
 			temCtx := ctx
-			tp.Run(func() {
+			_ = tp.Run(func() {
 				fmt.Println(temCtx)
 			})
 		}
+		tp.Stop()
+		err := tp.Run(func() {
+
+		})
+		fmt.Println(err)
 	}
 }
