@@ -31,7 +31,14 @@ func NewTaskPool(runSize, queueSize int) *TaskPool {
 						return
 					}
 					fmt.Printf("i = [%d] start.\n", i)
-					task()
+					func() {
+						defer func() {
+							if err := recover(); err != nil {
+								fmt.Printf("task pool panic: task recover panic[%s] and exit\n", err)
+							}
+						}()
+						task()
+					}()
 					fmt.Printf("i = [%d] end.\n", i)
 					if atomic.LoadUint32(&taskPool.closed) != 0 && len(taskPool.ch) == 0 {
 						// 探测是否符合预期

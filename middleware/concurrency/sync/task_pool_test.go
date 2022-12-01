@@ -35,6 +35,7 @@ func TestNewTaskPool(t *testing.T) {
 				if err := tp.Run(func() {
 					time.Sleep(time.Second * 1)
 					fmt.Println(temCtx)
+					panic("test failed")
 				}); err != nil {
 					break
 				}
