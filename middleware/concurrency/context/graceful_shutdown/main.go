@@ -10,6 +10,7 @@ import (
 )
 
 // main 注意要从命令行启动，否则不同的 IDE 可能会吞掉关闭信号
+// go build -tags=answer
 func main() {
 	businessServer := service.NewServer("business", "localhost:8080")
 	businessServer.Handle("/", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
