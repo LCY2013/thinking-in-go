@@ -162,7 +162,7 @@ func main() {
 		factory7 := thrift.NewTJSONProtocolFactory()
 		jsProt8 := factory7.GetProtocol(mbTrans5)
 		argvalue0 := user_service.NewLoginRequest()
-		err9 := argvalue0.Read(jsProt8)
+		err9 := argvalue0.Read(context.Background(), jsProt8)
 		if err9 != nil {
 			Usage()
 			return
