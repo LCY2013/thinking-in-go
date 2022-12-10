@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	v1 "fufeng.org/advanced/errors/sentinel_error/v1"
 )
 
 /**

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	v1 "fufeng.org/sample05/indentity/entities/v1"
 )
 
 // 公开或者未公开的标识符
