@@ -32,6 +32,10 @@ func (s *Str) Method() {
 
 // IterateFunc 输出给定结构体的方法信息
 func IterateFunc(val any) (map[string]FuncInfo, error) {
+	if val == nil {
+		return nil, errors.New("invalid input")
+	}
+
 	typ := reflect.TypeOf(val)
 	if typ.Kind() != reflect.Ptr && typ.Kind() != reflect.Struct {
 		return nil, errors.New("val must be a pointer or a struct")
