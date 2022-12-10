@@ -25,6 +25,7 @@ func handleConn(c net.Conn) {
 		// ... ...
 		// write to the connection
 		//... ...
+		fmt.Printf("")
 	}
 }
 
