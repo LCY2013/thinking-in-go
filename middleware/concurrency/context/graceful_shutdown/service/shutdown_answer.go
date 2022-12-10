@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -158,12 +159,12 @@ type Server struct {
 
 // serverMux 既可以看做是装饰器模式，也可以看做委托模式
 type serveMux struct {
-	reject bool
+	reject atomic.Bool
 	*http.ServeMux
 }
 
 func (s *serveMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if s.reject {
+	if s.reject.Load() {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte("服务已关闭"))
 		return
@@ -192,7 +193,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) rejectReq() {
-	s.mux.reject = true
+	s.mux.reject.Store(true)
 }
 
 func (s *Server) stop() error {
