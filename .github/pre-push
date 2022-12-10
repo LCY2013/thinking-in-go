@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2021 gotomicro
+# Copyright 2021 thinking-in-go
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ remote=$1
 url=$2
 echo >&2 "Try pushing $2 to $1"
 
-TEST="go test ./... -race -cover -failfast"
+#TEST="go test ./... -race -cover -failfast"
 LINTER="golangci-lint run"
 
 # Run test and return if failed
@@ -33,7 +33,7 @@ printf "Running go test..."
 #$TEST
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
-  echo >&2 "$TEST"
+#  echo >&2 "$TEST"
   echo >&2 "Check code to pass test."
   exit 1
 fi
