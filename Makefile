@@ -1,7 +1,7 @@
 # 单元测试
-#.PHONY: ut
-#ut:
-#	@go test -race ./...
+.PHONY: ut
+ut:
+	@go test -race ./...
 
 .PHONY: setup
 setup:
