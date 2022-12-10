@@ -2,8 +2,9 @@ package reflect
 
 import (
 	"database/sql"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInsertStmt(t *testing.T) {

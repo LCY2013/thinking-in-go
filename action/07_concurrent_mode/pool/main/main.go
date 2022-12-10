@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"fufeng.org/concurrent_mode/pool"
 	"io"
 	"log"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"fufeng.org/concurrent_mode/pool"
 )
 
 // 展示如何利用 pool 包来共享数据库连接池

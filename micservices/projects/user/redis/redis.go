@@ -19,9 +19,10 @@ package redis
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/go-redsync/redsync"
 	"github.com/gomodule/redigo/redis"
-	"time"
 )
 
 var pool *redis.Pool

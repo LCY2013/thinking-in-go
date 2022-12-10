@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/lcy2013/instrument_trace/instrumenter"
-	"github.com/lcy2013/instrument_trace/instrumenter/ast"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/lcy2013/instrument_trace/instrumenter"
+	"github.com/lcy2013/instrument_trace/instrumenter/ast"
 )
 
 var (

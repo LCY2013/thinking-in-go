@@ -20,8 +20,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/go-kit/kit/log"
-	"github.com/hashicorp/consul/api"
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
@@ -29,6 +27,9 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+
+	"github.com/go-kit/kit/log"
+	"github.com/hashicorp/consul/api"
 )
 
 func main() {

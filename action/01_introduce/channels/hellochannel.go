@@ -24,7 +24,7 @@ import (
 
 var wg sync.WaitGroup
 
-//printer 通过channel打印另一个goroutine传递的信息
+// printer 通过channel打印另一个goroutine传递的信息
 func printer(ch chan int) {
 	for num := range ch {
 		fmt.Printf("Received %d ", num)

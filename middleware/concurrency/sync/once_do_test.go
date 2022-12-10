@@ -2,9 +2,10 @@ package sync
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOnceClose_Close(t *testing.T) {

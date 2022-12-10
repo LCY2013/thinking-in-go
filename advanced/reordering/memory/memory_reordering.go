@@ -6,21 +6,22 @@ import (
 )
 
 /*
-
 https://cch123.github.io/ooo/
 
 从 Memory Reordering 说起
 
 下面这段代码会有怎样的输出
 var x, y int
-go func() {
-    x = 1 // A1
-    fmt.Print("y:", y, " ") // A2
-}()
-go func() {
-    y = 1                   // B1
-    fmt.Print("x:", x, " ") // B2
-}()
+
+	go func() {
+	    x = 1 // A1
+	    fmt.Print("y:", y, " ") // A2
+	}()
+
+	go func() {
+	    y = 1                   // B1
+	    fmt.Print("x:", x, " ") // B2
+	}()
 
 显而易见的几种结果:
 y:0 x:1
@@ -44,9 +45,6 @@ y:0 x:0
 1、编译器重排
 
 2、CPU重排
-
-
-
 */
 func main() {
 	var wg sync.WaitGroup

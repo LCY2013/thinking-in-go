@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/lcy2013/tcp-server-demo3/frame"
-	"github.com/lcy2013/tcp-server-demo3/metrics"
-	"github.com/lcy2013/tcp-server-demo3/packet"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
+
+	"github.com/lcy2013/tcp-server-demo3/frame"
+	"github.com/lcy2013/tcp-server-demo3/metrics"
+	"github.com/lcy2013/tcp-server-demo3/packet"
 )
 
 func main() {

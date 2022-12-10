@@ -54,7 +54,8 @@ func Contents(filename string) (string, error) {
 	return string(result), nil // f will be closed if we return here.
 }
 
-/**
+/*
+*
 被推迟函数的实参(如果该函数为方法则还包括接收者)在推迟执行时就会求值， 而不是在 调用执行时才求值。
 这样不仅无需担心变量值在函数执行时被改变， 同时还意味着单个已推 迟的调用可推迟多个函数的执行。下面是个简单的例子。
 */

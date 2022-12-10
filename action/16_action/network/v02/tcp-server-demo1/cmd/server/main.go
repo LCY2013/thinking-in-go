@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/lcy2013/tcp-server-demo1/frame"
 	"github.com/lcy2013/tcp-server-demo1/packet"
-	"net"
 )
 
 func main() {

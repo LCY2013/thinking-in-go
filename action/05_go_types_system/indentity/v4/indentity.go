@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	v2 "fufeng.org/sample05/indentity/entities/v2"
 )
 

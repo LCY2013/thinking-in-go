@@ -19,9 +19,10 @@ package main
 
 import (
 	"flag"
-	"fufeng.org/effective/a_web_server"
 	"log"
 	"net/http"
+
+	"fufeng.org/effective/a_web_server"
 )
 
 var addr = flag.String("addr", ":1718", "http service address") // Q=17, R=18

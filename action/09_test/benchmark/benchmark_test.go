@@ -12,14 +12,14 @@ import (
 // go test -v -run="none" -bench="BenchmarkSprintf"
 // none 表示在运行定制的基准测试之前没有其他的单元测试运行，上面两个参数都支持正则表达式
 // 基准测试结果如下：
-//goos: darwin
-//goarch: amd64
-//pkg: fufeng.org/test/benchmark
-//cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
-//BenchmarkSprintf
-//BenchmarkSprintf-8      14903394(本次调用的次数)                75.00 ns/op(每次操作的耗时)
-//PASS
-//ok      fufeng.org/test/benchmark       1.794s(本次基准测试的耗时，如果想让时间更长一点可以使用-benchtime)
+// goos: darwin
+// goarch: amd64
+// pkg: fufeng.org/test/benchmark
+// cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+// BenchmarkSprintf
+// BenchmarkSprintf-8      14903394(本次调用的次数)                75.00 ns/op(每次操作的耗时)
+// PASS
+// ok      fufeng.org/test/benchmark       1.794s(本次基准测试的耗时，如果想让时间更长一点可以使用-benchtime)
 // go test -v -run="none" -bench="BenchmarkSprintf" -benchtime="2s"
 func BenchmarkSprintf(b *testing.B) {
 	number := 10

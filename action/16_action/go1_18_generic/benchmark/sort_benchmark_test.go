@@ -1,10 +1,11 @@
 package benchmark
 
 import (
-	"golang.org/x/exp/slices"
 	"math/rand"
 	"sort"
 	"testing"
+
+	"golang.org/x/exp/slices"
 )
 
 const N = 100_000

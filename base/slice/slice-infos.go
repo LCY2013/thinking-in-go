@@ -52,7 +52,6 @@ func appendTrap() {
 “动态扩容”指的就是，当通过 append 操作向切片追加数据的时候，如果这时切片的 len 值和 cap 值是相等的，也就是说切片底层数组已经没有空闲空间再来存储追加的值了，Go 运行时就会对这个切片做扩容操作，来保证切片始终能存储下追加的新值。
 
 切片变量 nums 之所以可以存储下新追加的值，就是因为 Go 对其进行了动态扩容，也就是重新分配了其底层数组，从一个长度为 6 的数组变成了一个长为 12 的数组。
-
 */
 func autoScala() {
 	var s []int
@@ -69,12 +68,11 @@ func autoScala() {
 }
 
 /*
-type slice struct {
-    array unsafe.Pointer
-    len   int
-    cap   int
-}
-
+	type slice struct {
+	    array unsafe.Pointer
+	    len   int
+	    cap   int
+	}
 */
 func declaredSlice() {
 	var nums = []int{1, 2, 3, 4, 5, 6}

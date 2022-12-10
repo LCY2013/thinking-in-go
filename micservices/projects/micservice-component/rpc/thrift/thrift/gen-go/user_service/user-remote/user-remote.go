@@ -7,7 +7,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/apache/thrift/lib/go/thrift"
 	"math"
 	"net"
 	"net/url"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	user_service "thrift/thrift/gen-go/user_service"
+
+	"github.com/apache/thrift/lib/go/thrift"
 )
 
 var _ = user_service.GoUnusedProtection__

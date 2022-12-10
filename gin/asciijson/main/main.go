@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // main 使用 AsciiJSON 生成具有转义的非 ASCII 字符的 ASCII-only JSON

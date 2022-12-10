@@ -21,7 +21,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"os"
@@ -32,6 +31,8 @@ import (
 	"register-kit/transport"
 	"strconv"
 	"syscall"
+
+	"github.com/google/uuid"
 )
 
 // 程序主函数信息

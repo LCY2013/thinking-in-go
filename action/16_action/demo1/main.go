@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/lcy2013/workerpool"
 	"time"
+
+	"github.com/lcy2013/workerpool"
 )
 
 // main 这个示例程序创建了一个 capacity 为 5 的 workerpool 实例，并连续向这个 workerpool 提交了 10 个 task，每个 task 的逻辑很简单，只是 Sleep 3 秒后就退出。

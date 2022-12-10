@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Person struct {

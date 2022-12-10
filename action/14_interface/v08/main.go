@@ -9,7 +9,6 @@ import "fmt"
 在 Go 语言中，将任意类型赋值给一个接口类型变量也是装箱操作。面对接口类型变量内部表示，知道接口类型的装箱实际就是创建一个 eface 或 iface 的过程。
 
 接下来就来简要描述一下这个过程，也就是接口类型的装箱原理。
-
 */
 type T struct {
 	n int
@@ -30,6 +29,7 @@ type NonEmptyInterface interface {
 $ go tool compile -S main.go > main.s
 
 对应ei = t一行的汇编如下：
+
 	0x0026 00038 (main.go:37)	MOVQ	$17, ""..autotmp_15+104(SP)
 	0x002f 00047 (main.go:37)	LEAQ	go.string."hello, interface"(SB), CX
 	0x0036 00054 (main.go:37)	MOVQ	CX, ""..autotmp_15+112(SP)
@@ -40,6 +40,7 @@ $ go tool compile -S main.go > main.s
 	0x0050 00080 (main.go:37)	CALL	runtime.convT2E(SB)
 
 对应 i = t 一行的汇编如下：
+
 	0x005f 00095 (main.go:40)	MOVQ	$17, ""..autotmp_15+104(SP)
 	0x0068 00104 (main.go:40)	LEAQ	go.string."hello, interface"(SB), CX
 	0x006f 00111 (main.go:40)	MOVQ	CX, ""..autotmp_15+112(SP)
@@ -52,47 +53,48 @@ $ go tool compile -S main.go > main.s
 在将动态类型变量赋值给接口类型变量语句对应的汇编代码中，看到了convT2E和convT2I两个 runtime 包的函数。
 这两个函数的实现位于$GOROOT/src/runtime/iface.go中：
 
-func convT2E(t *_type, elem unsafe.Pointer) (e eface) {
-	if raceenabled {
-		raceReadObjectPC(t, elem, getcallerpc(), funcPC(convT2E))
+	func convT2E(t *_type, elem unsafe.Pointer) (e eface) {
+		if raceenabled {
+			raceReadObjectPC(t, elem, getcallerpc(), funcPC(convT2E))
+		}
+		if msanenabled {
+			msanread(elem, t.size)
+		}
+		x := mallocgc(t.size, t, true)
+		// TODO: We allocate a zeroed object only to overwrite it with actual data.
+		// Figure out how to avoid zeroing. Also below in convT2Eslice, convT2I, convT2Islice.
+		typedmemmove(t, x, elem)
+		e._type = t
+		e.data = x
+		return
 	}
-	if msanenabled {
-		msanread(elem, t.size)
-	}
-	x := mallocgc(t.size, t, true)
-	// TODO: We allocate a zeroed object only to overwrite it with actual data.
-	// Figure out how to avoid zeroing. Also below in convT2Eslice, convT2I, convT2Islice.
-	typedmemmove(t, x, elem)
-	e._type = t
-	e.data = x
-	return
-}
 
-func convT2I(tab *itab, elem unsafe.Pointer) (i iface) {
-	t := tab._type
-	if raceenabled {
-		raceReadObjectPC(t, elem, getcallerpc(), funcPC(convT2I))
+	func convT2I(tab *itab, elem unsafe.Pointer) (i iface) {
+		t := tab._type
+		if raceenabled {
+			raceReadObjectPC(t, elem, getcallerpc(), funcPC(convT2I))
+		}
+		if msanenabled {
+			msanread(elem, t.size)
+		}
+		x := mallocgc(t.size, t, true)
+		typedmemmove(t, x, elem)
+		i.tab = tab
+		i.data = x
+		return
 	}
-	if msanenabled {
-		msanread(elem, t.size)
-	}
-	x := mallocgc(t.size, t, true)
-	typedmemmove(t, x, elem)
-	i.tab = tab
-	i.data = x
-	return
-}
 
 convT2E 用于将任意类型转换为一个 eface，convT2I 用于将任意类型转换为一个 iface。
 两个函数的实现逻辑相似，主要思路就是根据传入的类型信息（convT2E 的 _type 和 convT2I 的 tab._type）分配一块内存空间，并将 elem 指向的数据拷贝到这块内存空间中，最后传入的类型信息作为返回值结构中的类型信息，返回值结构中的数据指针（data）指向新分配的那块内存空间。
 
 由此也可以看出，经过装箱后，箱内的数据，也就是存放在新分配的内存空间中的数据与原变量便无瓜葛了，比如下面这个例子：
-func main() {
-  var n int = 61
-  var ei interface{} = n
-  n = 62  // n的值已经改变
-  fmt.Println("data in box:", ei) // 输出仍是61
-}
+
+	func main() {
+	  var n int = 61
+	  var ei interface{} = n
+	  n = 62  // n的值已经改变
+	  fmt.Println("data in box:", ei) // 输出仍是61
+	}
 
 那么 convT2E 和 convT2I 函数的类型信息是从何而来的呢？
 
@@ -112,11 +114,12 @@ func convTslice(val any) unsafe.Pointer  // val must be a slice
 同时 Go 建立了 staticuint64s 区域，对 255 以内的小整数值进行装箱操作时不再分配新内存，而是利用 staticuint64s 区域的内存空间，下面是 staticuint64s 的定义：
 / $GOROOT/src/runtime/iface.go
 // staticuint64s is used to avoid allocating in convTx for small integer values.
-var staticuint64s = [...]uint64{
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-  ... ...
-}
+
+	var staticuint64s = [...]uint64{
+	    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+	  ... ...
+	}
 */
 func main() {
 	var t = T{

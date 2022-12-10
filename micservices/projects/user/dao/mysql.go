@@ -19,9 +19,10 @@ package dao
 
 import (
 	"fmt"
+	"log"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"log"
 )
 
 var db *gorm.DB

@@ -20,9 +20,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"grpc-mic/pb"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
 func main() {

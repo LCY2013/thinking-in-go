@@ -20,6 +20,7 @@ package users
 import (
 	"context"
 	"errors"
+
 	"github.com/go-kit/kit/endpoint"
 	"golang.org/x/time/rate"
 )

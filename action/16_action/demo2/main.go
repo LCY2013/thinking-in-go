@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/lcy2013/workerpool"
 	"time"
+
+	"github.com/lcy2013/workerpool"
 )
 
 // main 不过，由于 Goroutine 调度的不确定性，这个结果仅仅是很多种结果的一种。仅仅 002 这个 worker 收到了 task，其余的 worker 都因为 worker 尚未创建完毕，而返回了错误，而不是像 demo1 那样阻塞在 Schedule 调用上。

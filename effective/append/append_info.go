@@ -28,7 +28,8 @@ func main() {
 
 /*
 append 函数的签名不同于前面我们自 定义的Append 函数。大致来说，它就像这样:
- func append(slice []T, elements ...T) []T
+
+	func append(slice []T, elements ...T) []T
 
 其中的 T 为任意给定类型的占位符。实际上，你无法在 Go 中编写一个类型 T 由调用者决定 的函数。这也就是为何 append 为内建函数的原因:它需要编译器的支持。
 

@@ -41,12 +41,12 @@ Request 结构体包含已解析的客户端请求。
 这里有个短小却完整的处理程序实现， 它用于记录某个页面被访问的次数。
 */
 
-//Counter 简单的计数器服务
+// Counter 简单的计数器服务
 type Counter struct {
 	n int
 }
 
-//ServeHTTP 计数器服务
+// ServeHTTP 计数器服务
 func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctr.n++
 	_, err := fmt.Fprintf(w, "counter = %d\n", ctr.n)

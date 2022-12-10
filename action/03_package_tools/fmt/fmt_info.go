@@ -6,8 +6,9 @@ import "os"
 // fmt 前:
 // if _, err := os.Open(""); err != nil{}
 // fmt 后:
-// if _, err := os.Open(""); err != nil {
-//	}
+//
+//	if _, err := os.Open(""); err != nil {
+//		}
 func main() {
 	if _, err := os.Open(""); err != nil {
 	}

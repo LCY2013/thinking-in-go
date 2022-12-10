@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fufeng.org/concurrent_mode/work"
 	"log"
 	"sync"
 	"time"
+
+	"fufeng.org/concurrent_mode/work"
 )
 
 // 展示使用 work 包

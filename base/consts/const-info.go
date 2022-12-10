@@ -13,7 +13,7 @@ type myInt int
 
 const n myInt = 13
 
-//const m int = n + 5 // 编译器报错：cannot use n + 5 (type myInt) as type int in const initializer
+// const m int = n + 5 // 编译器报错：cannot use n + 5 (type myInt) as type int in const initializer
 const m int = int(n) + 5 // 编译器报错：cannot use n + 5 (type myInt) as type int in const initializer
 
 // 无类型常量

@@ -19,9 +19,10 @@ package model
 
 import (
 	"errors"
-	"github.com/pborman/uuid"
 	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
 )
 
 // TrackingID uniquely identifies a particular cargo

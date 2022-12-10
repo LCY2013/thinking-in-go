@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"fufeng.org/standard/decoder/json/v3"
 	"log"
+
+	"fufeng.org/standard/decoder/json/v3"
 )
 
 func main() {

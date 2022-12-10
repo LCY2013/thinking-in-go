@@ -19,8 +19,9 @@ package booking
 
 import (
 	"cargo/model"
-	"github.com/go-kit/kit/log"
 	"time"
+
+	"github.com/go-kit/kit/log"
 )
 
 type loggingService struct {

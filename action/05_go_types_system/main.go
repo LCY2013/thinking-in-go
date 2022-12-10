@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+
 	//_ "fufeng.org/sample05/curl"
-	"fufeng.org/sample05/structs"
 	"io"
 	"net/http"
 	"os"
+
+	"fufeng.org/sample05/structs"
 )
 
 // main 程序的入口

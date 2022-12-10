@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 // ShouldBindQuery 函数只绑定 url 查询参数而忽略 post 数据。参阅详细信息.

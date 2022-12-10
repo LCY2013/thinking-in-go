@@ -19,11 +19,12 @@ package main
 
 import (
 	"flag"
-	"google.golang.org/grpc"
 	"grpc-project/pb"
 	users "grpc-project/user"
 	"log"
 	"net"
+
+	"google.golang.org/grpc"
 )
 
 func main() {

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/lcy2013/dumpinterface/dump"
 	"unsafe"
+
+	"github.com/lcy2013/dumpinterface/dump"
 )
 
 // 输出接口类型变量内部表示的详细信息

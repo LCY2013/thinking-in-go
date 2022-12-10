@@ -26,13 +26,13 @@ import (
 go1.15.2/src/sync/mutex.go:31
 
 // A Locker represents an object that can be locked and unlocked.
-type Locker interface {
-	Lock()
-	Unlock()
-}
+
+	type Locker interface {
+		Lock()
+		Unlock()
+	}
 
 Mutex、RWMutex 都实现了该接口
-
 */
 func main() {
 	// data race
@@ -48,37 +48,35 @@ func main() {
 }
 
 /*
-  多个goroutine同时修改一个变量，看是否会造成结果不一致
+	  多个goroutine同时修改一个变量，看是否会造成结果不一致
 
-  结论:
-	造成结果(<100000)和预期(100000)不一致
+	  结论:
+		造成结果(<100000)和预期(100000)不一致
 
-  原因分析:
-	count++ 不是一个原子操作，至少包含几个步骤，比如读取变量count 的当前值，对这个值加 1，把结果再保存到 count 中，因为不是原子操作，就可能有并发的问题。
+	  原因分析:
+		count++ 不是一个原子操作，至少包含几个步骤，比如读取变量count 的当前值，对这个值加 1，把结果再保存到 count 中，因为不是原子操作，就可能有并发的问题。
 
-	汇编层如下：
-		// count++操作的汇编代码
-		MOVQ    "".count(SB),
-		AX    LEAQ    1(AX),
-		CX    MOVQ    CX,
-		"".count(SB)
+		汇编层如下：
+			// count++操作的汇编代码
+			MOVQ    "".count(SB),
+			AX    LEAQ    1(AX),
+			CX    MOVQ    CX,
+			"".count(SB)
 
-   工具集:
-	  Go 提供了一个检测并发访问共享资源是否有问题的工具： race detector，可以帮助我们自动发现程序有没有 data race 的问题。
+	   工具集:
+		  Go 提供了一个检测并发访问共享资源是否有问题的工具： race detector，可以帮助我们自动发现程序有没有 data race 的问题。
 
-	  Go race detector 是基于 Google 的 C/C++ sanitizers 技术实现的，编译器通过探测所有的内存访问，加入代码能监视对这些内存地址的访问（读还是写）。
-	  在代码运行的时候，race detector 就能监控到对共享变量的非同步访问，出现 race 的时候，就会打印出警告信息。
+		  Go race detector 是基于 Google 的 C/C++ sanitizers 技术实现的，编译器通过探测所有的内存访问，加入代码能监视对这些内存地址的访问（读还是写）。
+		  在代码运行的时候，race detector 就能监控到对共享变量的非同步访问，出现 race 的时候，就会打印出警告信息。
 
-	  使用流程：
-		在编译（compile）、测试（test）或者运行（run）Go 代码的时候，加上 race 参数，就有可能发现并发问题。
-	    比如在上面的例子中，我们可以加上 race 参数运行，检测一下是不是有并发问题。
-		如果你 go run -race mutex-info.go，就会输出警告信息。
+		  使用流程：
+			在编译（compile）、测试（test）或者运行（run）Go 代码的时候，加上 race 参数，就有可能发现并发问题。
+		    比如在上面的例子中，我们可以加上 race 参数运行，检测一下是不是有并发问题。
+			如果你 go run -race mutex-info.go，就会输出警告信息。
 
-	开启了 race 的程序部署在线上，还是比较影响性能的
+		开启了 race 的程序部署在线上，还是比较影响性能的
 
-	运行 go tool compile -race -S mutex-info.go，可以查看计数器例子的代码，重点关注一下 count++ 前后的编译后的代码。
-
-
+		运行 go tool compile -race -S mutex-info.go，可以查看计数器例子的代码，重点关注一下 count++ 前后的编译后的代码。
 */
 func case01() {
 	// 定义一个初始化的统计变量
@@ -147,7 +145,7 @@ func case02() {
 	fmt.Println(count)
 }
 
-//===============================
+// ===============================
 func case03() {
 	var counter Counter03
 
@@ -175,7 +173,7 @@ type Counter03 struct {
 	count int
 }
 
-//===============================
+// ===============================
 func case04() {
 	var counter Counter
 

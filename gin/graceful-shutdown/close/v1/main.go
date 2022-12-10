@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/fvbock/endless"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/fvbock/endless"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

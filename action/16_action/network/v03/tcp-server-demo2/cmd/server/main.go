@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/lcy2013/tcp-server-demo2/frame"
-	"github.com/lcy2013/tcp-server-demo2/metrics"
-	"github.com/lcy2013/tcp-server-demo2/packet"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
+
+	"github.com/lcy2013/tcp-server-demo2/frame"
+	"github.com/lcy2013/tcp-server-demo2/metrics"
+	"github.com/lcy2013/tcp-server-demo2/packet"
 )
 
 func main() {

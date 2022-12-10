@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"log"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 /*

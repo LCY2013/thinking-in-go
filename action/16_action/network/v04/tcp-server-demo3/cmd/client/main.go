@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/lcy2013/tcp-server-demo3/frame"
-	"github.com/lcy2013/tcp-server-demo3/packet"
-	"github.com/lucasepe/codename"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/lcy2013/tcp-server-demo3/frame"
+	"github.com/lcy2013/tcp-server-demo3/packet"
+	"github.com/lucasepe/codename"
 )
 
 // main 客户端启动了 5 个 Goroutine，模拟 5 个并发连接。

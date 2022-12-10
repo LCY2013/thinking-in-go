@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"net/http"
-	"path/filepath"
 )
 
 func main() {

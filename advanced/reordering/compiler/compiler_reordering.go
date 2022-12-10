@@ -5,13 +5,15 @@ package main
 snippet 1
 X = 0
 for i in range(100):
-    X = 1
-    print X
+
+	X = 1
+	print X
 
 snippet 2
 X = 1
 for i in range(100):
-    print X
+
+	print X
 
 snippet 1 和 snippet 2 是等价的。
 
@@ -26,11 +28,13 @@ P2 中的指令和 snippet 2 交错执行时，可能产生的结果是：111000
 
 int a, b;
 int foo()
-{
-    a = b + 1;
-    b = 0;
-    return 1;
-}
+
+	{
+	    a = b + 1;
+	    b = 0;
+	    return 1;
+	}
+
 输出汇编:
 
 mov eax, DWORD PTR b[rip]

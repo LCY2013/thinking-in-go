@@ -20,11 +20,12 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/jinzhu/gorm"
 	"log"
 	"time"
 	"user/dao"
 	"user/redis"
+
+	"github.com/jinzhu/gorm"
 )
 
 type UserInfoDTO struct {

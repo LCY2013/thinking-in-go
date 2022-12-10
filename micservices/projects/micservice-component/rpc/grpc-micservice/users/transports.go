@@ -20,8 +20,9 @@ package users
 import (
 	"context"
 	"errors"
-	"github.com/go-kit/kit/transport/grpc"
 	"grpc-mic/pb"
+
+	"github.com/go-kit/kit/transport/grpc"
 )
 
 // 定义坏请求

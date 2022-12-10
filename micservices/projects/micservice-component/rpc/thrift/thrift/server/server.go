@@ -19,9 +19,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/apache/thrift/lib/go/thrift"
 	"log"
 	"thrift/thrift/gen-go/user_service"
+
+	"github.com/apache/thrift/lib/go/thrift"
 )
 
 const (

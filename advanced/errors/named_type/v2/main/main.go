@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"fufeng.org/advanced/errors/named_type/v2"
 )
 
 func main() {

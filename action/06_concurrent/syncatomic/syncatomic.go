@@ -94,17 +94,17 @@ func main() {
 
 atomic.Value被设计用来存储任意类型的数据，所以它内部的字段是一个interface{}类型，非常的简单粗暴。
 
-type Value struct {
-  v interface{}
-}
+	type Value struct {
+	  v interface{}
+	}
 
 除了Value外，这个文件里还定义了一个ifaceWords类型，这其实是一个空interface (interface{}）的内部表示格式（参见runtime/runtime2.go中eface的定义）。
 它的作用是将interface{}类型分解，得到其中的两个字段。
 
-type ifaceWords struct {
-  typ  unsafe.Pointer
-  data unsafe.Pointer
-}
+	type ifaceWords struct {
+	  typ  unsafe.Pointer
+	  data unsafe.Pointer
+	}
 
 》写入（Store）操作
 unsafe.Pointer

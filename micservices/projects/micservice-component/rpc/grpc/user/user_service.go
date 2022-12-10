@@ -19,8 +19,9 @@ package users
 
 import (
 	"context"
-	_ "google.golang.org/grpc"
 	"grpc-project/pb"
+
+	_ "google.golang.org/grpc"
 )
 
 // 定义UserService结构体

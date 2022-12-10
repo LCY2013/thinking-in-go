@@ -7,8 +7,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/apache/thrift/lib/go/thrift"
 	"reflect"
+
+	"github.com/apache/thrift/lib/go/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)
@@ -19,8 +20,8 @@ var _ = reflect.DeepEqual
 var _ = bytes.Equal
 
 // Attributes:
-//  - Username
-//  - Password
+//   - Username
+//   - Password
 type LoginRequest struct {
 	Username string `thrift:"username,1" db:"username" json:"username"`
 	Password string `thrift:"password,2" db:"password" json:"password"`
@@ -159,7 +160,7 @@ func (p *LoginRequest) String() string {
 }
 
 // Attributes:
-//  - Msg
+//   - Msg
 type LoginResponse struct {
 	Msg string `thrift:"msg,1" db:"msg" json:"msg"`
 }
@@ -290,7 +291,7 @@ func (p *UserClient) Client_() thrift.TClient {
 }
 
 // Parameters:
-//  - Req
+//   - Req
 func (p *UserClient) CheckPassword(ctx context.Context, req *LoginRequest) (r *LoginResponse, err error) {
 	var _args0 UserCheckPasswordArgs
 	_args0.Req = req
@@ -396,7 +397,7 @@ func (p *userProcessorCheckPassword) Process(ctx context.Context, seqId int32, i
 // HELPER FUNCTIONS AND STRUCTURES
 
 // Attributes:
-//  - Req
+//   - Req
 type UserCheckPasswordArgs struct {
 	Req *LoginRequest `thrift:"req,1" db:"req" json:"req"`
 }
@@ -503,7 +504,7 @@ func (p *UserCheckPasswordArgs) String() string {
 }
 
 // Attributes:
-//  - Success
+//   - Success
 type UserCheckPasswordResult struct {
 	Success *LoginResponse `thrift:"success,0" db:"success" json:"success,omitempty"`
 }

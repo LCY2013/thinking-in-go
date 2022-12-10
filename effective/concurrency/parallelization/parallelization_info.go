@@ -40,7 +40,7 @@ func (v Vector) DoSome(i, n int, u Vector, c chan int) {
 
 type Vector []float64
 
-//DoSome 将此操应用至 v[i], v[i+1] ... 直到 v[n-1]
+// DoSome 将此操应用至 v[i], v[i+1] ... 直到 v[n-1]
 func (v Vector) DoSome(i, n int, u Vector, c chan int) {
 	for ; i < n; i++ {
 		v[i] += u.Op(v[i])

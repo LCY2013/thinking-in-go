@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 通常，JSON 使用 unicode 替换特殊 HTML 字符，例如 < 变为 \ u003c。

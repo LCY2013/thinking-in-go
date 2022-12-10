@@ -9,7 +9,7 @@ type field struct {
 	name string
 }
 
-//func (p *field) print() {
+// func (p *field) print() {
 func (p field) print() {
 	fmt.Println(p.name)
 }

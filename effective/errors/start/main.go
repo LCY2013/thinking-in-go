@@ -18,8 +18,9 @@
 package main
 
 import (
-	"fufeng.org/effective/errors"
 	"time"
+
+	"fufeng.org/effective/errors"
 )
 
 func main() {

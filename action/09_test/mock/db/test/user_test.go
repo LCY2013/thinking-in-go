@@ -2,12 +2,13 @@ package test
 
 import (
 	"errors"
+	"testing"
+
 	"fufeng.org/test/mock/db/application/cmd"
 	"fufeng.org/test/mock/db/application/query"
 	"fufeng.org/test/mock/db/domain/user"
 	"fufeng.org/test/mock/db/infrastructure/db/mock"
 	"github.com/golang/mock/gomock"
-	"testing"
 )
 
 func TestCreateUser(t *testing.T) {

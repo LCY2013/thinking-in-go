@@ -19,9 +19,10 @@ package main
 
 import (
 	"context"
-	"google.golang.org/grpc"
 	"grpc-project/pb"
 	"log"
+
+	"google.golang.org/grpc"
 )
 
 func main() {

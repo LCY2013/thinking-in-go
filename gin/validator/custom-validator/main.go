@@ -1,11 +1,12 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"net/http"
-	"time"
 )
 
 // Booking 包含绑定和验证的数据。

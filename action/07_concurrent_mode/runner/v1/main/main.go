@@ -1,10 +1,11 @@
 package main
 
 import (
-	v1 "fufeng.org/concurrent_mode/runner/v1"
 	"log"
 	"os"
 	"time"
+
+	v1 "fufeng.org/concurrent_mode/runner/v1"
 )
 
 // 使用通道来监视程序运行的时间，以及程序在运行时间过长时如何终止程序

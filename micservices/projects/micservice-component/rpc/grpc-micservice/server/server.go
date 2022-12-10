@@ -20,15 +20,16 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/go-kit/kit/log"
-	"golang.org/x/time/rate"
-	"google.golang.org/grpc"
 	"grpc-mic/pb"
 	"grpc-mic/users"
 	logGo "log"
 	"net"
 	"os"
 	"time"
+
+	"github.com/go-kit/kit/log"
+	"golang.org/x/time/rate"
+	"google.golang.org/grpc"
 )
 
 func main() {

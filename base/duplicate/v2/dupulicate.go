@@ -78,7 +78,7 @@ func main() {
 }
 
 /*
- 统计文件行里面的重复行
+统计文件行里面的重复行
 */
 func countLines(f *os.File, counts map[string]int) {
 	// 将文件作为一个输入源

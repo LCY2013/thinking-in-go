@@ -1,9 +1,10 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/testdata/protoexample"
-	"net/http"
 )
 
 // XML/JSON/YAML/ProtoBuf 渲染

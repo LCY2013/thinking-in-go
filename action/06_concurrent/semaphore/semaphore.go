@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"golang.org/x/sync/semaphore"
 	"log"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 )
 
 /*

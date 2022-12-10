@@ -2,8 +2,9 @@ package reflect
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReflectAccessor_Field(t *testing.T) {

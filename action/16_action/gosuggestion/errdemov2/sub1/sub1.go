@@ -2,6 +2,7 @@ package sub1
 
 import (
 	"errdemo/sub1/sub2"
+
 	"github.com/pkg/errors"
 )
 

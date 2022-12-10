@@ -21,13 +21,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"os"
+	"register-kit/endpoint"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"net/http"
-	"os"
-	"register-kit/endpoint"
 )
 
 var (

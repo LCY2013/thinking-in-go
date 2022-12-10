@@ -20,9 +20,10 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/hashicorp/consul/api"
 	"log"
 	discoverys "register-kit/discovery"
+
+	"github.com/hashicorp/consul/api"
 )
 
 // 定义一个服务接口

@@ -19,9 +19,10 @@ package endpoint
 
 import (
 	"context"
+	"register-kit/service"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/hashicorp/consul/api"
-	"register-kit/service"
 )
 
 // 注册端点结构体定义

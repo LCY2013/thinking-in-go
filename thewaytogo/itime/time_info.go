@@ -29,7 +29,7 @@ func main() {
 }
 
 // 如果你需要在应用程序在经过一定时间或周期执行某项任务（事件处理的特例），则可以使用 time.After 或者 time.Ticker：
-//我们将会在第 14.5 节讨论这些有趣的事情。 另外，time.Sleep（Duration d） 可以实现对某个进程（实质上是 goroutine）时长为 d 的暂停。
+// 我们将会在第 14.5 节讨论这些有趣的事情。 另外，time.Sleep（Duration d） 可以实现对某个进程（实质上是 goroutine）时长为 d 的暂停。
 func dateFunc() {
 	t := time.Now()
 	fmt.Println(t) // e.g. Wed Dec 21 09:52:14 +0100 RST 2011
@@ -56,7 +56,7 @@ func dateFunc() {
 // time 包为我们提供了一个数据类型 time.Time（作为值使用）以及显示和测量时间和日期的功能函数。
 // Duration 类型表示两个连续时刻所相差的纳秒数，类型为 int64。Location 类型映射某个时区的时间，UTC 表示通用协调世界时间。
 //
-//包中的一个预定义函数 func (t Time) Format(layout string) string 可以根据一个格式化字符串来将一个时间 t 转换为相应格式的字符串，你可以使用一些预定义的格式，如：time.ANSIC 或 time.RFC822
+// 包中的一个预定义函数 func (t Time) Format(layout string) string 可以根据一个格式化字符串来将一个时间 t 转换为相应格式的字符串，你可以使用一些预定义的格式，如：time.ANSIC 或 time.RFC822
 func dateShow() {
 	t := time.Now()
 	fmt.Println(t)

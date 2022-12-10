@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/sync/singleflight"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 /*

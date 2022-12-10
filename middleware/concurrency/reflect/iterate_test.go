@@ -3,8 +3,9 @@ package reflect
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIterate(t *testing.T) {

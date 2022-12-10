@@ -1,6 +1,6 @@
 package main
 
-import "github.com/lcy2013/instrument_trace"
+import "golang.org/x/net/trace"
 
 // 利用 instrument 工具注入跟踪代码
 // 有了 instrument 工具后，再来看看如何使用这个工具，在目标 Go 源文件中自动注入跟踪设施。

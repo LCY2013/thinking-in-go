@@ -2,8 +2,9 @@ package main
 
 import (
 	"bytes"
-	"fufeng.org/struct/basic"
 	"unsafe"
+
+	"fufeng.org/struct/basic"
 )
 
 func main() {

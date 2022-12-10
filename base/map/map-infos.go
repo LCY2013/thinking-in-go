@@ -3,8 +3,6 @@ package main
 /*
 map 类型对 value 的类型没有限制，但是对 key 的类型却有严格要求，因为 map 类型要保证 key 的唯一性。
 Go 语言中要求，key 的类型必须支持“==”和“!=”两种比较操作符。
-
-
 */
 func main() {
 	typeCompare()

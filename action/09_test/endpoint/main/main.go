@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fufeng.org/test/endpoint"
 	"log"
 	"net/http"
+
+	"fufeng.org/test/endpoint"
 )
 
 func init() {

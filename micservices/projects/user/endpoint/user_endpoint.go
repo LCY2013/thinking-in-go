@@ -19,8 +19,9 @@ package endpoint
 
 import (
 	"context"
-	"github.com/go-kit/kit/endpoint"
 	"user/service"
+
+	"github.com/go-kit/kit/endpoint"
 )
 
 type UserEndpoints struct {

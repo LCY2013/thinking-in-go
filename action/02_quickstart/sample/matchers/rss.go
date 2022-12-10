@@ -4,10 +4,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"fufeng.org/sample/search"
 	"log"
 	"net/http"
 	"regexp"
+
+	"fufeng.org/sample/search"
 )
 
 // 搜索rss源的匹配器

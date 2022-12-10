@@ -3,9 +3,10 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/lcy2013/custom-web/coreweb/server/04/framework"
 	"log"
 	"time"
+
+	"github.com/lcy2013/custom-web/coreweb/server/04/framework"
 )
 
 func Timeout(d time.Duration) framework.ControllerHandler {

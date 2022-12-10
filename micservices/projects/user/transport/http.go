@@ -23,15 +23,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/transport"
-	kitHttp "github.com/go-kit/kit/transport/http"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	goLog "log"
 	"net/http"
 	"os"
 	"user/endpoint"
+
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/transport"
+	kitHttp "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 )
 
 var (

@@ -3,11 +3,12 @@ package ast
 import (
 	"bytes"
 	"fmt"
-	instrumented "github.com/lcy2013/instrument_trace/instrumenter"
 	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
+
+	instrumented "github.com/lcy2013/instrument_trace/instrumenter"
 	"golang.org/x/tools/go/ast/astutil"
 )
 

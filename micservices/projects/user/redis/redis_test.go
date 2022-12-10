@@ -2,11 +2,12 @@ package redis
 
 import (
 	"fmt"
-	"github.com/go-redsync/redsync"
-	"github.com/gomodule/redigo/redis"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/go-redsync/redsync"
+	"github.com/gomodule/redigo/redis"
 )
 
 func TestGetRedisConn(t *testing.T) {

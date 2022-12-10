@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	v12 "fufeng.org/standard/decoder/json/v1"
 	"log"
 	"net/http"
+
+	v12 "fufeng.org/standard/decoder/json/v1"
 )
 
 func main() {

@@ -2,9 +2,10 @@ package metrics
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
 )
 
 // metricsHTTPPort for prometheus to connect

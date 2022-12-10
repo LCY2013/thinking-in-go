@@ -19,9 +19,10 @@ package endpoint
 
 import (
 	"context"
-	"github.com/go-kit/kit/endpoint"
 	discoverys "regiter/discovery"
 	"regiter/service"
+
+	"github.com/go-kit/kit/endpoint"
 )
 
 // 注册端点结构体

@@ -20,10 +20,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/apache/thrift/lib/go/thrift"
 	"log"
 	"net"
 	"thrift/thrift/gen-go/user_service"
+
+	"github.com/apache/thrift/lib/go/thrift"
 )
 
 const (

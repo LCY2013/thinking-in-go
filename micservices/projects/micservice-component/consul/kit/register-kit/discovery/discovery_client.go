@@ -19,12 +19,13 @@ package discoveries
 
 import (
 	"context"
+	"os"
+	"strconv"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/sd"
 	"github.com/go-kit/kit/sd/consul"
 	"github.com/hashicorp/consul/api"
-	"os"
-	"strconv"
 )
 
 // 定义服务发现结构体

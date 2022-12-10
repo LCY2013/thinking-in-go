@@ -23,14 +23,16 @@ import (
 	"strings"
 )
 
-/**
-  命令行参数使用情况
-	运行时程序的 命令行参数可以通过os包中一个叫Args的变量来获取;当在os包外部使用该变量时，需要用os.Args来访问。
-	$ go run echo.go hello fufeng
-	$ go build echo.go
-	$ ./echo hello fufeng
+/*
+*
 
-	-n用于忽略行尾的换行符，-s sep用于指定分隔字符(默认是空格)
+	  命令行参数使用情况
+		运行时程序的 命令行参数可以通过os包中一个叫Args的变量来获取;当在os包外部使用该变量时，需要用os.Args来访问。
+		$ go run echo.go hello fufeng
+		$ go build echo.go
+		$ ./echo hello fufeng
+
+		-n用于忽略行尾的换行符，-s sep用于指定分隔字符(默认是空格)
 */
 func main() {
 	// echo1()

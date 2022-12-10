@@ -57,7 +57,7 @@ func init() {
 }
 */
 
-//CubeRoot 用牛顿法计算立方根的一个玩具实现。
+// CubeRoot 用牛顿法计算立方根的一个玩具实现。
 func CubeRoot(x float64) float64 {
 	z := x / 3 // 任意初始值
 	for i := 0; i < 1e6; i++ {

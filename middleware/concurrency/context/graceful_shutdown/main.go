@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/LCY2013/thinking-in-go/middleware/concurrency/context/graceful_shutdown/service"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/LCY2013/thinking-in-go/middleware/concurrency/context/graceful_shutdown/service"
 )
 
 // main 注意要从命令行启动，否则不同的 IDE 可能会吞掉关闭信号
