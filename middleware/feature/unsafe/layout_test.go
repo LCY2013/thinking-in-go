@@ -1,9 +1,8 @@
 package unsafe
 
 import (
+	"github.com/LCY2013/thinking-in-go/middleware/feature/unsafe/types"
 	"testing"
-
-	"github.com/LCY2013/thinking-in-go/middleware/concurrency/unsafe/types"
 )
 
 func TestPrintFieldOffset(t *testing.T) {

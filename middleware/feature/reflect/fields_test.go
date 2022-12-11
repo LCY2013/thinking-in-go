@@ -3,10 +3,10 @@ package reflect
 import (
 	"errors"
 	"fmt"
+	"github.com/LCY2013/thinking-in-go/middleware/feature/reflect/types"
 	"reflect"
 	"testing"
 
-	"github.com/LCY2013/thinking-in-go/middleware/concurrency/reflect/types"
 	"github.com/stretchr/testify/assert"
 )
 

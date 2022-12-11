@@ -1,0 +1,11 @@
+go test -bench=. -benchmem
+
+goos: darwin
+goarch: arm64
+pkg: github.com/LCY2013/thinking-in-go/middleware/mapstruct/copier
+BenchmarkReflectCopier_Copy_PureRunTime-10                       2116558               562.2 ns/op           240 B/op         17 allocs/op
+BenchmarkReflectCopier_CopyComplexStruct_WithPureRuntime-10       385803              3019 ns/op            1056 B/op         80 allocs/op
+BenchmarkReflectCopier_Copy-10                                   3883029               308.3 ns/op           192 B/op         11 allocs/op
+BenchmarkReflectCopier_CopyComplexStruct-10                       809798              1450 ns/op             784 B/op         46 allocs/op
+PASS
+ok      github.com/LCY2013/thinking-in-go/middleware/mapstruct/copier   5.789s
