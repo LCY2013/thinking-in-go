@@ -43,3 +43,77 @@ func TestCronexpr(t *testing.T) {
 
 	time.Sleep(6 * time.Second)
 }
+
+// CronJob 任务抽象
+type CronJob struct {
+	expr     *cronexpr.Expression
+	nextTime time.Time // expr.Next(now
+}
+
+func TestCronexprScheduling(t *testing.T) {
+	// 需要有一个调度协程， 它定时监测所有的Cron任务，谁过期就执行谁
+
+	var (
+		cronJob       *CronJob
+		expr          *cronexpr.Expression
+		now           time.Time
+		scheduleTable map[string]*CronJob // key 任务的名字
+	)
+
+	scheduleTable = make(map[string]*CronJob)
+
+	// now
+	now = time.Now()
+
+	// 1、定义两个cronjob
+	expr = cronexpr.MustParse("*/5 * * * * * *")
+	cronJob = &CronJob{
+		expr:     expr,
+		nextTime: expr.Next(now),
+	}
+	// 任务注册到调度表
+	scheduleTable["job-1"] = cronJob
+
+	expr = cronexpr.MustParse("*/5 * * * * * *")
+	cronJob = &CronJob{
+		expr:     expr,
+		nextTime: expr.Next(now),
+	}
+	// 任务注册到调度表
+	scheduleTable["job-2"] = cronJob
+
+	// 启动调度协程
+	go func() {
+		var (
+			jobName string
+			cronJob *CronJob
+			now     time.Time
+		)
+
+		// 定时检查一下任务调度表
+		for {
+			now = time.Now()
+
+			for jobName, cronJob = range scheduleTable {
+				// 判断是否过期
+				if cronJob.nextTime.Before(now) || cronJob.nextTime.Equal(now) {
+					// 启动一个协程，执行这个任务
+					go func(jobName string) {
+						t.Logf("[%s]-执行 ", jobName)
+					}(jobName)
+
+					// 计算下一次调度时间
+					cronJob.nextTime = cronJob.expr.Next(now)
+					t.Logf("[%s]-下次执行时间:%s", jobName, cronJob.nextTime)
+				}
+			}
+
+			// 休眠100ms
+			select {
+			case <-time.NewTimer(100 * time.Millisecond).C:
+			}
+		}
+	}()
+
+	time.Sleep(100 * time.Second)
+}
