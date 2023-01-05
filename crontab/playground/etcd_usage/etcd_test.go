@@ -2,6 +2,7 @@ package etcd_usage
 
 import (
 	"context"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"testing"
 	"time"
@@ -39,8 +40,8 @@ func (s *etcdTestSuite) TestEtcdPut() {
 	// 用于读写etcd健值对
 	kv = clientv3.NewKV(s.client)
 
-	//if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job1", "hello"); err != nil {
-	if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job2", "world"); err != nil {
+	if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job1", "hello"); err != nil {
+		//if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job2", "world"); err != nil {
 		s.T().Error(err)
 		return
 	}
@@ -98,6 +99,7 @@ func (s *etcdTestSuite) TestEtcdGetPrefix() {
 		getResponse *clientv3.GetResponse
 		err         error
 	)
+
 	// 用于读写etcd健值对
 	kv = clientv3.NewKV(s.client)
 
@@ -108,4 +110,39 @@ func (s *etcdTestSuite) TestEtcdGetPrefix() {
 	}
 	s.T().Logf("With Prefix Kvs: %v \n", getResponse.Kvs)
 	s.T().Log("----------------------------")
+}
+
+func (s *etcdTestSuite) TestEtcdDelete() {
+	var (
+		kv      clientv3.KV
+		delResp *clientv3.DeleteResponse
+		err     error
+		idx     int
+		kvpair  *mvccpb.KeyValue
+	)
+
+	// 用于读写etcd健值对
+	kv = clientv3.NewKV(s.client)
+
+	// 删除指定某个KV
+	/*if delResp, err = kv.Delete(context.TODO(), "/cron/jobs/job1", clientv3.WithPrevKV()); err != nil {
+		s.T().Error(err)
+		return
+	}
+	if len(delResp.PrevKvs) > 0 {
+		for idx, kvpair = range delResp.PrevKvs {
+			s.T().Logf("Delete [%d] kv: key-%s , value-%s \n", idx, kvpair.Key, kvpair.Value)
+		}
+	}*/
+
+	// 删除从某个key开始的若干个key
+	if delResp, err = kv.Delete(context.TODO(), "/cron/jobs/job1", clientv3.WithFromKey(), clientv3.WithPrevKV()); err != nil {
+		s.T().Error(err)
+		return
+	}
+	if len(delResp.PrevKvs) > 0 {
+		for idx, kvpair = range delResp.PrevKvs {
+			s.T().Logf("Delete [%d] kv: key-%s , value-%s \n", idx, kvpair.Key, kvpair.Value)
+		}
+	}
 }
