@@ -39,7 +39,8 @@ func (s *etcdTestSuite) TestEtcdPut() {
 	// 用于读写etcd健值对
 	kv = clientv3.NewKV(s.client)
 
-	if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job1", "hello"); err != nil {
+	//if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job1", "hello"); err != nil {
+	if putResponse, err = kv.Put(context.TODO(), "/cron/jobs/job2", "world"); err != nil {
 		s.T().Error(err)
 		return
 	}
@@ -89,4 +90,22 @@ func (s *etcdTestSuite) TestEtcdGet() {
 		return
 	}
 	s.T().Logf("With From Kvs: %v \n", getResponse.Kvs)
+}
+
+func (s *etcdTestSuite) TestEtcdGetPrefix() {
+	var (
+		kv          clientv3.KV
+		getResponse *clientv3.GetResponse
+		err         error
+	)
+	// 用于读写etcd健值对
+	kv = clientv3.NewKV(s.client)
+
+	// 返回某个前缀的数据
+	if getResponse, err = kv.Get(context.TODO(), "/cron/jobs/", clientv3.WithPrefix()); err != nil {
+		s.T().Error(err)
+		return
+	}
+	s.T().Logf("With Prefix Kvs: %v \n", getResponse.Kvs)
+	s.T().Log("----------------------------")
 }
