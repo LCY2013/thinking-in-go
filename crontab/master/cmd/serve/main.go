@@ -4,11 +4,11 @@ import (
 	"context"
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
-	"github.com/gin-gonic/gin"
+	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
+	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
+	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
-	"net/http"
 	"time"
 )
 
@@ -18,7 +18,10 @@ func main() {
 		// construct the *log.Logger, http.Handler, and *http.ServeMux types.
 		// Remember that constructors are called lazily, so this block doesn't do
 		// much on its own.
-		fx.Provide(),
+		fx.Provide(
+			controller.NewJobController,
+			webcontainer.NewContainer,
+		),
 		// Since constructors are called lazily, we need some invocations to
 		// kick-start our application. In this case, we'll use Register. Since it
 		// depends on an http.Handler and *http.ServeMux, calling it requires Fx
@@ -31,11 +34,11 @@ func main() {
 		// its events. In this case, we're using a NopLogger to keep
 		// our test silent. Normally, you'll want to use an
 		// fxevent.ZapLogger or an fxevent.ConsoleLogger.
-		fx.WithLogger(
+		/*fx.WithLogger(
 			func() fxevent.Logger {
 				return fxevent.NopLogger
 			},
-		),
+		),*/
 	)
 
 	// In a typical application, we could just use app.Run() here. Since we
@@ -58,16 +61,14 @@ func main() {
 	}
 }
 
-func startServerApp() {
+func startServerApp(webContainer *webcontainer.WebContainer) {
 	app := container.NewApp(configs.Conf().AppName,
 		container.BuildMultipleGinServe(configs.Conf().Serves),
 		container.WithShutdownCallbacks(StoreCacheToDBCallback))
 
 	router, ok := container.GinEngineByServeName("master")
 	if ok {
-		router.POST("/job/save", func(c *gin.Context) {
-			c.JSON(http.StatusOK, "ok")
-		})
+		router.POST("/job/save", _gin.Wrapper(webContainer.JobController.CreateJob))
 	}
 
 	app.StartAndServe()

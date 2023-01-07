@@ -1,4 +1,4 @@
-//go:build answer
+//go:build container
 
 package container
 
@@ -8,7 +8,7 @@ import (
 )
 
 var signals = []os.Signal{
-	os.Interrupt, os.Kill, syscall.SIGKILL,
+	os.Interrupt, os.Kill, syscall.SIGKILL, syscall.SIGSTOP,
 	syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP,
-	syscall.SIGABRT, syscall.SIGTERM,
+	syscall.SIGABRT, syscall.SIGSYS, syscall.SIGTERM,
 }
