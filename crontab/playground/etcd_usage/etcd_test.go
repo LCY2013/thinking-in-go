@@ -305,3 +305,44 @@ func (s *etcdTestSuite) TestEtcdWatch() {
 		}
 	}
 }
+
+// TestEtcdLease etcd operation
+func (s *etcdTestSuite) TestEtcdOperation() {
+	var (
+		kv     clientv3.KV
+		opResp clientv3.OpResponse
+		err    error
+		putOp  clientv3.Op
+		getOp  clientv3.Op
+	)
+
+	// 获取kv API子集
+	kv = clientv3.NewKV(s.client)
+
+	// 创建Op operation
+	putOp = clientv3.OpPut("/cron/jobs/job8", "")
+
+	// 执行OP
+	if opResp, err = kv.Do(context.TODO(), putOp); err != nil {
+		s.T().Error(err)
+		return
+	}
+	s.T().Logf("put Revision: %v", opResp.Put().Header.Revision)
+
+	// 创建GET OP
+	getOp = clientv3.OpGet("/cron/jobs/job8")
+
+	// 执行OP
+	if opResp, err = kv.Do(context.TODO(), getOp); err != nil {
+		s.T().Error(err)
+		return
+	}
+	s.T().Logf("数据Revision: %v", opResp.Get().Header.Revision) // 未删除时，第一次 执行 create rev == mod rev
+	s.T().Logf("数据value: %v", opResp.Get().Kvs)
+
+	// kv.Do(op)
+
+	// kv.Put
+	// kv.Get
+	// kv.Delete
+}
