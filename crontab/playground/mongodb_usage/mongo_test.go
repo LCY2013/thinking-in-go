@@ -38,11 +38,6 @@ type TimePoint struct {
 	EndTime   int64 `json:"endTime" bson:"endTime"`
 }
 
-// FindByJobName LogRecord filter by job name
-type FindByJobName struct {
-	JobName string `json:"jobName" bson:"jobName"` // JobName赋值为job0
-}
-
 // TestMongoDBInsert mongodb insert operation
 func (m *mongoDbTestSuite) TestMongoDBInsert() {
 	var (
@@ -82,6 +77,11 @@ func (m *mongoDbTestSuite) TestMongoDBInsert() {
 	// _id: 默认生成一个全局唯一的ID，ObjectID: 12字节的二进制
 	docId = insertResp.InsertedID.(primitive.ObjectID)
 	m.T().Logf("自增ID: %s", docId.Hex())
+}
+
+// FindByJobName LogRecord filter by job name
+type FindByJobName struct {
+	JobName string `json:"jobName" bson:"jobName"` // JobName赋值为job0
 }
 
 // TestMongoDBFind mongo find records
@@ -136,4 +136,50 @@ func (m *mongoDbTestSuite) TestMongoDBFind() {
 		// 把日志行打印出来
 		m.T().Logf("record: %+v", logRecord)
 	}
+}
+
+// TimeBeforeCond 时间条件
+// {"$lt": 当前时间}
+type TimeBeforeCond struct {
+	Before int64 `bson:"$lt"`
+}
+
+// DeleteCond {"timePoint.startTime": {"$lt": 当前时间}}
+type DeleteCond struct {
+	BeforeCond TimeBeforeCond `bson:"timePoint.startTime"`
+}
+
+// TestMongoDBFind mongo delete records
+func (m *mongoDbTestSuite) TestMongoDBDelete() {
+	var (
+		database   *mongo.Database
+		collection *mongo.Collection
+		delResp    *mongo.DeleteResult
+
+		delCond *DeleteCond
+
+		err error
+	)
+
+	// 选择数据库 my_db
+	database = m.client.Database("cron")
+
+	// 选择collection
+	collection = database.Collection("logs")
+
+	// 删除开始时间早于当前时间的所有日志($lt是less than)
+	// delete({"timePoint.startTime": {"$lt": 当前时间}})
+	delCond = &DeleteCond{
+		BeforeCond: TimeBeforeCond{
+			Before: time.Now().Unix(),
+		},
+	}
+
+	// 执行删除
+	if delResp, err = collection.DeleteMany(context.TODO(), delCond); err != nil {
+		m.T().Error(err)
+		return
+	}
+
+	m.T().Logf("删除行数: %d", delResp.DeletedCount)
 }
