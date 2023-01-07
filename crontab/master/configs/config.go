@@ -43,6 +43,9 @@ func readInConfig() error {
 	viper.AddConfigPath("$HOME/.crontab")                                              // call multiple times to add many search paths
 	viper.AddConfigPath(".")                                                           // optionally look for config in the working directory
 	viper.AddConfigPath("./configs")                                                   // optionally look for config in the working directory
+	viper.AddConfigPath("../configs")                                                  // optionally look for config in the working directory
+	viper.AddConfigPath("../../configs")                                               // optionally look for config in the working directory
+	viper.AddConfigPath("../../../configs")                                            // optionally look for config in the working directory
 	if pwd, err = tools.Pwd(); err == nil {
 		viper.AddConfigPath(pwd) // optionally look for config in the working directory
 	}

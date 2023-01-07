@@ -5,37 +5,67 @@ import (
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"net/http"
+	"time"
 )
 
 func main() {
-	/*router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
-	//router.LoadHTMLFiles("templates/template1.html", "templates/template2.html")
-	router.GET("/index", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"title": "Main website",
-		})
-	})
-	err := router.Run(fmt.Sprintf(":%d", configs.Conf()))
-	if err != nil {
+	app := fx.New(
+		// Provide all the constructors we need, which teaches Fx how we'd like to
+		// construct the *log.Logger, http.Handler, and *http.ServeMux types.
+		// Remember that constructors are called lazily, so this block doesn't do
+		// much on its own.
+		fx.Provide(),
+		// Since constructors are called lazily, we need some invocations to
+		// kick-start our application. In this case, we'll use Register. Since it
+		// depends on an http.Handler and *http.ServeMux, calling it requires Fx
+		// to build those types using the constructors above. Since we call
+		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
+		// server.
+		fx.Invoke(startServerApp),
+
+		// This is optional. With this, you can control where Fx logs
+		// its events. In this case, we're using a NopLogger to keep
+		// our test silent. Normally, you'll want to use an
+		// fxevent.ZapLogger or an fxevent.ConsoleLogger.
+		fx.WithLogger(
+			func() fxevent.Logger {
+				return fxevent.NopLogger
+			},
+		),
+	)
+
+	// In a typical application, we could just use app.Run() here. Since we
+	// don't want this example to run forever, we'll use the more-explicit Start
+	// and Stop.
+
+	if err := app.Start(context.Background()); err != nil {
 		log.WithFields(log.Fields{
-			"serve": "gin router",
+			"fx.start": "err",
 		}).Error(err)
 		return
-	}*/
+	}
 
-	/*log.WithFields(log.Fields{
-		"initConfig": "Conf",
-	}).Printf("%+v", *configs.Conf())*/
+	stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.WithFields(log.Fields{
+			"fx.stop": "err",
+		}).Error(err)
+	}
+}
 
+func startServerApp() {
 	app := container.NewApp(configs.Conf().AppName,
 		container.BuildMultipleGinServe(configs.Conf().Serves),
 		container.WithShutdownCallbacks(StoreCacheToDBCallback))
 
-	router, ok := container.GinEngineByServeName("")
+	router, ok := container.GinEngineByServeName("master")
 	if ok {
-		router.GET("/index", func(c *gin.Context) {
+		router.POST("/job/save", func(c *gin.Context) {
 			c.JSON(http.StatusOK, "ok")
 		})
 	}
