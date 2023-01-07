@@ -2,6 +2,7 @@ package etcd_usage
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"testing"
@@ -345,4 +346,110 @@ func (s *etcdTestSuite) TestEtcdOperation() {
 	// kv.Put
 	// kv.Get
 	// kv.Delete
+}
+
+// TestEtcdLease etcd optimistic lock(乐观锁)
+func (s *etcdTestSuite) TestEtcdOptimisticLock() {
+	var (
+		kv                     clientv3.KV
+		lease                  clientv3.Lease
+		leaseGrantResp         *clientv3.LeaseGrantResponse
+		leaseId                clientv3.LeaseID
+		ctx                    context.Context
+		cancelFunc             context.CancelFunc
+		keepRespChan           <-chan *clientv3.LeaseKeepAliveResponse
+		leaseKeepAliveResponse *clientv3.LeaseKeepAliveResponse
+		txn                    clientv3.Txn
+		txnResp                *clientv3.TxnResponse
+		genUuid                uuid.UUID
+
+		err error
+	)
+
+	// lease 实现锁自动过期
+	// op操作
+	// txn事物：if else then
+
+	// 1、上锁（创建租约，自动续租，拿着租约去抢占一个key）
+	// 申请一个租约(lease)
+	lease = clientv3.NewLease(s.client)
+
+	// 申请一个5s的租约
+	if leaseGrantResp, err = lease.Grant(context.TODO(), 5); err != nil {
+		s.T().Error(err)
+		return
+	}
+
+	// 拿到租约ID
+	leaseId = leaseGrantResp.ID
+
+	// 准备一个取消自动续租的context
+	ctx, cancelFunc = context.WithCancel(context.Background())
+
+	// 确保函数退出后，自动续租会停止
+	defer cancelFunc()
+	defer func(lease clientv3.Lease, ctx context.Context, id clientv3.LeaseID) {
+		_, err = lease.Revoke(ctx, id)
+		if err != nil {
+			s.T().Error(err)
+		}
+	}(lease, context.TODO(), leaseId)
+
+	// 自动续租，直到主动取消或者5s后过期
+	if keepRespChan, err = lease.KeepAlive(ctx, leaseId); err != nil {
+		s.T().Error(err)
+		return
+	}
+
+	// 处理续租应答
+	go func() {
+		for {
+			select {
+			case leaseKeepAliveResponse = <-keepRespChan:
+				if leaseKeepAliveResponse == nil {
+					goto END
+				}
+				// 每秒会续租一次，所以就会收到一次应答
+				s.T().Logf("收到自动续租应答: %d", leaseKeepAliveResponse.ID)
+			}
+		}
+	END:
+	}()
+
+	// if 不存在key， then设置它 else 抢锁失败
+	// 获取kv API子集
+	kv = clientv3.NewKV(s.client)
+
+	// 创建事物
+	txn = kv.Txn(context.TODO())
+
+	// 定义事物
+	genUuid = uuid.New()
+
+	// if key 不存在
+	txn.If(clientv3.Compare(clientv3.CreateRevision("/cron/lock/job9"), "=", 0)).
+		// then try lock
+		Then(clientv3.OpPut("/cron/lock/job9", genUuid.URN(), clientv3.WithLease(leaseId))).
+		// else lock failed
+		Else(clientv3.OpGet("/cron/lock/job9"))
+
+	// 事物提交
+	if txnResp, err = txn.Commit(); err != nil {
+		s.T().Error(err)
+		return
+	}
+
+	// 是否抢到了锁
+	if !txnResp.Succeeded {
+		s.T().Logf("failed to lock, already occupied by: %s", txnResp.Responses[0].GetResponseRange().Kvs[0].Value)
+		return
+	}
+
+	// 2、处理业务
+	s.T().Log("handle something start")
+	time.Sleep(5 * time.Second)
+	s.T().Log("handle something end")
+
+	// 3、释放锁（取消自动续租，释放租约）
+	// defer 会把租约释放掉，关联的KV就会被删除了
 }
