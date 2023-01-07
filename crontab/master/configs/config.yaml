@@ -1,0 +1,3 @@
+appName: "crontab"
+serves:
+  - {"serveName": "master", "servePort": 8080}
