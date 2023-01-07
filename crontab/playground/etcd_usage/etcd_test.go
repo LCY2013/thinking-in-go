@@ -229,3 +229,79 @@ func (s *etcdTestSuite) TestEtcdLease() {
 		s.T().Logf("未过期: %v", getResp.Kvs)
 	}
 }
+
+// TestEtcdLease etcd 租约机制测试
+func (s *etcdTestSuite) TestEtcdWatch() {
+	var (
+		kv                 clientv3.KV
+		putResp            *clientv3.PutResponse
+		delResp            *clientv3.DeleteResponse
+		getResp            *clientv3.GetResponse
+		err                error
+		watchStartRevision int64
+		watcher            clientv3.Watcher
+		watchChan          clientv3.WatchChan
+		watchResponse      clientv3.WatchResponse
+		event              *clientv3.Event
+	)
+
+	// 获取kv API子集
+	kv = clientv3.NewKV(s.client)
+
+	// 模拟etcd中kv的变化
+	go func() {
+		for {
+			if putResp, err = kv.Put(context.TODO(), "/cron/jobs/job8", "i am job8"); err != nil {
+				s.T().Error(err)
+				return
+			}
+			_ = putResp
+
+			time.Sleep(1 * time.Second)
+
+			if delResp, err = kv.Delete(context.TODO(), "/cron/jobs/job8"); err != nil {
+				s.T().Error(err)
+				return
+			}
+			_ = delResp
+
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	// 先GET到当前的值，并监听后续变化
+	if getResp, err = kv.Get(context.TODO(), "/cron/jobs/job8"); err != nil {
+		s.T().Error(err)
+		return
+	}
+
+	// 现在key是否存在
+	if len(getResp.Kvs) != 0 {
+		s.T().Logf("当前值: %s", getResp.Kvs[0].Value)
+	}
+
+	// 当前etcd集群事物ID，单调递增
+	watchStartRevision = getResp.Header.Revision + 1
+
+	// 创建一个watcher
+	watcher = clientv3.NewWatcher(s.client)
+
+	// 启动监听
+	s.T().Logf("从该版本向后监听: %d", watchStartRevision)
+
+	ctx, cancelFunc := context.WithCancel(context.TODO())
+	time.AfterFunc(5*time.Second, cancelFunc)
+	watchChan = watcher.Watch(ctx, "/cron/jobs/job8", clientv3.WithRev(watchStartRevision))
+
+	// 处理kv变化事件
+	for watchResponse = range watchChan {
+		for _, event = range watchResponse.Events {
+			switch event.Type {
+			case mvccpb.PUT:
+				s.T().Logf("创建KEY: %s, 修改前: %s, 修改后: %s, 创建Revision: %d, 修改Revision: %d", event.Kv.Key, event.PrevKv, event.Kv.Value, event.Kv.CreateRevision, event.Kv.ModRevision)
+			case mvccpb.DELETE:
+				s.T().Logf("删除KEY: %s, 创建Revision: %d, 修改Revision: %d", event.Kv.Key, event.Kv.CreateRevision, event.Kv.ModRevision)
+			}
+		}
+	}
+}
