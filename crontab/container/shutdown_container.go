@@ -203,15 +203,39 @@ func (s *serveMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.ServeMux.ServeHTTP(w, r)
 }
 
-func NewHandlerServer(name, addr string, handle http.Handler) *Server {
+func NewHandlerServer(name, addr string, handle http.Handler, options ...HandleServerOption) *Server {
 	mux := &serveMux{ServeMux: handle}
-	return &Server{
+	server := &Server{
 		name: name,
 		mux:  mux,
 		srv: &http.Server{
 			Addr:    addr,
 			Handler: mux,
 		},
+	}
+	for _, option := range options {
+		option(server)
+	}
+	return server
+}
+
+type HandleServerOption func(server *Server)
+
+func WithHandleServerReadTimeout(readTimeout int) HandleServerOption {
+	return func(server *Server) {
+		if readTimeout <= 0 {
+			readTimeout = 3000
+		}
+		server.srv.ReadTimeout = time.Duration(readTimeout)
+	}
+}
+
+func WithHandleServerWriteTimeout(writeTimeout int) HandleServerOption {
+	return func(server *Server) {
+		if writeTimeout <= 0 {
+			writeTimeout = 3000
+		}
+		server.srv.WriteTimeout = time.Duration(writeTimeout)
 	}
 }
 

@@ -22,7 +22,9 @@ var (
 // initConfigArg 初始化一些命令行参数
 // serve -port 8080
 func initConfigArg() {
-	pflag.Int("port", 8080, "server port")
+	// 对数组没用
+	pflag.Int("serves.readTimeOut", 5000, "server read time out")
+	pflag.Int("serves.writeTimeOut", 5000, "server write time out")
 
 	pflag.Parse()
 }
