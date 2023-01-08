@@ -114,7 +114,27 @@ func typeParsesStruct(c *gin.Context, rtype reflect.Type) reflect.Value {
 func parseArgs(ctx *gin.Context, ftype reflect.Type, fnInNum int) []reflect.Value {
 	argv := make([]reflect.Value, fnInNum)
 	for i := 0; i < fnInNum; i++ {
-		inType := ftype.In(i).Elem()
+		inType := ftype.In(i)
+		if inType.Kind() != reflect.Ptr {
+			input := reflect.New(inType).Interface()
+			_ = ctx.ShouldBind(input)
+
+			argv[i] = reflect.ValueOf(input)
+			continue
+		}
+		inType = inType.Elem()
+
+		actInType := inType
+		for actInType.Kind() == reflect.Ptr {
+			actInType = actInType.Elem()
+		}
+		if actInType.Kind() != reflect.Struct && actInType.Kind() != reflect.Map && !inType.Implements(ctxType) {
+			input := reflect.New(inType).Interface()
+			_ = ctx.ShouldBindQuery(input)
+
+			argv[i] = reflect.ValueOf(input)
+			continue
+		}
 
 		// 参数是ctx时
 		if inType.Implements(ctxType) {
@@ -129,7 +149,7 @@ func parseArgs(ctx *gin.Context, ftype reflect.Type, fnInNum int) []reflect.Valu
 		}
 
 		input := reflect.New(inType).Interface()
-		_ = ctx.ShouldBindQuery(input)
+		_ = ctx.ShouldBind(input)
 
 		argv[i] = reflect.ValueOf(input)
 	}
