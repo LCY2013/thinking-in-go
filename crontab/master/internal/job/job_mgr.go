@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	jobEntity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"sync"
@@ -65,7 +66,8 @@ func (mgr *Mgr) SaveJob(ctx context.Context, job *jobEntity.JobEntity) (oldJob *
 	)
 
 	// etcd 的保存key
-	jobKey = fmt.Sprintf("/cron/jobs/%s", job.Name)
+	jobKey = fmt.Sprintf("%s%s", constants.JobDir, job.Name)
+
 	// 序列化任务信息
 	if jobValue, err = json.Marshal(job); err != nil {
 		return nil, err
@@ -99,7 +101,7 @@ func (mgr *Mgr) DeleteJob(ctx context.Context, jobName string) (oldJob *jobEntit
 	)
 
 	// etcd 的保存key
-	jobKey = fmt.Sprintf("/cron/jobs/%s", jobName)
+	jobKey = fmt.Sprintf("%s%s", constants.JobDir, jobName)
 
 	// 保存到etcd中，并且获取以前的值信息
 	if delResp, err = mgr.kv.Delete(ctx, jobKey, clientv3.WithPrevKV()); err != nil {
