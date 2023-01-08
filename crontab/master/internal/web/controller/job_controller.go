@@ -84,7 +84,7 @@ type ListJobRequest struct {
 }
 
 type ListJobResponse struct {
-	JobList []*jobentity.JobEntity `json:"jobList"`
+	JobList []*jobentity.JobEntity `json:"list"`
 }
 
 func (c *JobController) ListJob(ctx context.Context, listJobRequest *ListJobRequest) (*ListJobResponse, error) {

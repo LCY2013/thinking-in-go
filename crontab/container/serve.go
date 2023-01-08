@@ -8,12 +8,14 @@ import (
 )
 
 var ginEngine map[string]*gin.Engine
+var serveInfo map[string]*Serve
 
 type Serve struct {
 	ServeName    string `json:"serveName"`
 	ServePort    int    `json:"servePort"`
 	ReadTimeout  int    `json:"readTimeout"`
 	WriteTimeout int    `json:"writeTimeout"`
+	WebRoot      string `json:"webRoot"`
 }
 
 // BuildMultipleGinServe 构建多个服务
@@ -31,6 +33,10 @@ func BuildMultipleGinServe(serves []Serve) []*Server {
 		ginEngine = make(map[string]*gin.Engine, serveLen)
 	}
 
+	if serveInfo == nil {
+		serveInfo = make(map[string]*Serve, serveLen)
+	}
+
 	for idx, serve := range serves {
 		//engine := gin.Default()
 		engine := gin.New()
@@ -42,6 +48,7 @@ func BuildMultipleGinServe(serves []Serve) []*Server {
 			WithHandleServerWriteTimeout(serve.WriteTimeout))
 
 		ginEngine[serve.ServeName] = engine
+		serveInfo[serve.ServeName] = &serve
 
 		engine.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 			// 你的自定义格式
@@ -90,4 +97,9 @@ func BuildMultipleGinServe(serves []Serve) []*Server {
 func GinEngineByServeName(name string) (*gin.Engine, bool) {
 	engine, ok := ginEngine[name]
 	return engine, ok
+}
+
+// ServeByServeName 通过serve name 获取serve
+func ServeByServeName(name string) *Serve {
+	return serveInfo[name]
 }

@@ -8,6 +8,7 @@ import (
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
 	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/fx"
@@ -77,22 +78,58 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
 		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
 		router.POST("/job/kill", _gin.Wrapper(webContainer.JobController.KillJob))
+		// CORS for https://foo.com and https://github.com origins, allowing:
+		// - PUT and PATCH methods
+		// - Origin header
+		// - Credentials share
+		// - Preflight requests cached for 12 hours
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"POST", "GET", "OPTIONS", "DELETE", "PATCH", "PUT"},
+			AllowHeaders:     []string{"Content-Type", "AccessToken", "X-CSRF-Token", "Authorization", "Token", "x-token"},
+			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
+			AllowCredentials: true,
+			AllowOriginFunc: func(origin string) bool {
+				//return origin == "http://127.0.0.1:8081"
+				return true
+			},
+			MaxAge: 12 * time.Hour,
+		}))
+
+		// manage
+		router.LoadHTMLGlob(container.ServeByServeName("master").WebRoot)
+		router.GET("/index.html", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"Title": "Golang分布式调度平台",
+			})
+		})
 	}
 
 	router, ok = container.GinEngineByServeName("master-manager")
 	if ok {
-		router.LoadHTMLGlob("master/internal/web/static/*")
-		//router.LoadHTMLFiles("templates/template1.html", "templates/template2.html")
-		/*router.GET("/index.html", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"title": "Main website",
-			})
-		})*/
+		router.LoadHTMLGlob(container.ServeByServeName("master-manager").WebRoot)
 		router.GET("/index.html", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", gin.H{
-				"Title": "crontab 管理后台",
+				"Title": "Golang分布式调度平台",
 			})
 		})
+		// CORS for https://foo.com and https://github.com origins, allowing:
+		// - PUT and PATCH methods
+		// - Origin header
+		// - Credentials share
+		// - Preflight requests cached for 12 hours
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"POST", "GET", "OPTIONS", "DELETE", "PATCH", "PUT"},
+			AllowHeaders:     []string{"Content-Type", "AccessToken", "X-CSRF-Token", "Authorization", "Token", "x-token"},
+			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
+			AllowCredentials: true,
+			AllowOriginFunc: func(origin string) bool {
+				//return origin == "http://127.0.0.1:8081"
+				return true
+			},
+			MaxAge: 12 * time.Hour,
+		}))
 	}
 
 	app.StartAndServe()
