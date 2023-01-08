@@ -6,7 +6,6 @@ import (
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
-	"github.com/LCY2013/thinking-in-go/crontab/slave/internal/scheduler"
 	log "github.com/sirupsen/logrus"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -97,7 +96,7 @@ func (mgr *Mgr) WatchJobs(ctx context.Context) (err error) {
 			"jobEvent-All": jobEvent,
 		}).Log(log.InfoLevel)
 
-		scheduler.GScheduler.PushJobEvent(jobEvent)
+		GScheduler.PushJobEvent(jobEvent)
 	}
 
 	// 从该revision向后监听变化事件
@@ -125,7 +124,7 @@ func (mgr *Mgr) WatchJobs(ctx context.Context) (err error) {
 					}).Log(log.InfoLevel)
 
 					// 推一个更新事件给scheduler
-					scheduler.GScheduler.PushJobEvent(jobEvent)
+					GScheduler.PushJobEvent(jobEvent)
 				case mvccpb.DELETE: // 任务删除事件
 					// delete /cron/jobs/job0
 					jobName = entity.ExtractJobName(string(watchEvent.Kv.Key))
@@ -143,11 +142,16 @@ func (mgr *Mgr) WatchJobs(ctx context.Context) (err error) {
 					}).Log(log.InfoLevel)
 
 					// 推一个删除事件给scheduler
-					scheduler.GScheduler.PushJobEvent(jobEvent)
+					GScheduler.PushJobEvent(jobEvent)
 				}
 			}
 		}
 	})
 
 	return
+}
+
+// CreateJobLock 构建一个job锁
+func (mgr *Mgr) CreateJobLock(jobName string) (jobLock *JobLock) {
+	return InitJobLock(jobName, mgr.kv, mgr.lease)
 }

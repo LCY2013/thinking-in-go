@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/configs"
-	"github.com/LCY2013/thinking-in-go/crontab/slave/internal/scheduler"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/slave/internal/web/container"
 
 	service "github.com/LCY2013/thinking-in-go/crontab/slave/internal/job"
@@ -30,7 +29,7 @@ func main() {
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
 		fx.Invoke(
-			scheduler.InitScheduler,
+			service.InitScheduler,
 			service.InitMgr,
 			startServerApp,
 		),
