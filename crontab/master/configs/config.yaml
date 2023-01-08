@@ -3,8 +3,8 @@ appName: "crontab"
 
 # 启动服务信息
 serves:
-  - {"serveName": "master", "servePort": 8080, "readTimeOut": 5000, "writeTimeOut": 5000, "webRoot": "master/internal/web/static/*"}
-#  - {"serveName": "master-manager", "servePort": 8081, "readTimeOut": 5000, "writeTimeOut": 5000, "webRoot": "master/internal/web/static/*"}
+  - {"serveName": "master", "servePort": 8080, "readTimeOut": 5000, "writeTimeOut": 5000, "webRoot": "internal/web/static/*"}
+#  - {"serveName": "master-manager", "servePort": 8081, "readTimeOut": 5000, "writeTimeOut": 5000, "webRoot": "internal/web/static/*"}
 
 # etcd配置信息
 etcd:

@@ -18,6 +18,14 @@ func Pwd() (string, error) {
 	return fmt.Sprintf("%s/master/configs", pwd), nil
 }
 
+func PwdSlave() (string, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/slave/configs", pwd), nil
+}
+
 func GetCurrentPath() (string, error) {
 	file, err := exec.LookPath(os.Args[0])
 	if err != nil {

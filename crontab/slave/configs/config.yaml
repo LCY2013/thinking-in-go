@@ -1,0 +1,13 @@
+# 应用名称
+appName: "crontab-salve"
+
+# 启动服务信息
+serves:
+  - {"serveName": "salve", "servePort": 8081, "readTimeOut": 5000, "writeTimeOut": 5000}
+
+# etcd配置信息
+etcd:
+  server:
+    endpoints:
+      - "127.0.0.1:2379"
+    dialTimeout: 5000
