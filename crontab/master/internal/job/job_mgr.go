@@ -156,6 +156,7 @@ func (mgr *Mgr) ListJob(ctx context.Context) (jobList []*jobEntity.JobEntity, er
 }
 
 // KillJob kill job
+// ./etcdctl watch "/cron/killer/" --prefix
 func (mgr *Mgr) KillJob(ctx context.Context, jobName string) (err error) {
 	// 更新一些key=/cron/killer/任务名
 	var (

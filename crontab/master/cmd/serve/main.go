@@ -8,8 +8,10 @@ import (
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
 	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/fx"
+	"net/http"
 	"time"
 )
 
@@ -75,6 +77,22 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
 		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
 		router.POST("/job/kill", _gin.Wrapper(webContainer.JobController.KillJob))
+	}
+
+	router, ok = container.GinEngineByServeName("master-manager")
+	if ok {
+		router.LoadHTMLGlob("master/internal/web/static/*")
+		//router.LoadHTMLFiles("templates/template1.html", "templates/template2.html")
+		/*router.GET("/index.html", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.tmpl", gin.H{
+				"title": "Main website",
+			})
+		})*/
+		router.GET("/index.html", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"Title": "crontab 管理后台",
+			})
+		})
 	}
 
 	app.StartAndServe()
