@@ -13,6 +13,7 @@ type Scheduler struct {
 	jobEventChan      chan *entity.JobEvent              // etcd 任务事件队列
 	jobPlanTable      map[string]*entity.JobSchedulePlan // 任务执行计划表
 	jobExecutingTable map[string]*entity.JobExecuteInfo  // 任务执行表
+	jobResultChan     chan *entity.JobExecuteResult      // 任务结果队列
 }
 
 var (
@@ -25,6 +26,7 @@ func InitScheduler() (err error) {
 		jobEventChan:      make(chan *entity.JobEvent, 1000),
 		jobPlanTable:      make(map[string]*entity.JobSchedulePlan, 100),
 		jobExecutingTable: make(map[string]*entity.JobExecuteInfo, 100),
+		jobResultChan:     make(chan *entity.JobExecuteResult, 1000),
 	}
 
 	// 启动调度协程
@@ -40,6 +42,7 @@ func (s *Scheduler) scheduleLoop() {
 		jobEvent      *entity.JobEvent
 		scheduleAfter time.Duration
 		scheduleTimer *time.Timer
+		jobResult     *entity.JobExecuteResult
 	)
 
 	// 执行一遍初始化
@@ -55,6 +58,9 @@ func (s *Scheduler) scheduleLoop() {
 			// 对内存中的任务事件实时同步
 			s.handleJobEvent(jobEvent)
 		case <-scheduleTimer.C: // 最近的任务到期执行
+		case jobResult = <-s.jobResultChan: // 监听任务执行结果
+			// 处理任务执行结果
+			s.handleJobResult(jobResult)
 		}
 
 		// 执行一遍初始化
@@ -149,9 +155,6 @@ func (s *Scheduler) TryStartJob(jobPlan *entity.JobSchedulePlan) {
 
 	// 执行的任务可能允许很久，1分钟会调度60次，但是只执行一次
 	if jobExecuteInfo, jobExecuting = s.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
-		log.WithFields(log.Fields{
-			"TryStartJob-UNDO": jobExecuteInfo,
-		}).Log(log.InfoLevel)
 		return
 	}
 
@@ -162,8 +165,21 @@ func (s *Scheduler) TryStartJob(jobPlan *entity.JobSchedulePlan) {
 	s.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
 
 	// 执行任务
-	//TODO:
+	GExecutor.ExecuteJob(jobExecuteInfo)
+}
+
+// PushJobResult 回传执行结果
+func (s *Scheduler) PushJobResult(jobResult *entity.JobExecuteResult) {
+	s.jobResultChan <- jobResult
+}
+
+// handleJobResult 处理任务结果信息
+func (s *Scheduler) handleJobResult(result *entity.JobExecuteResult) {
+	// 删除任务执行状态
+	delete(s.jobExecutingTable, result.ExecuteInfo.Job.Name)
+
 	log.WithFields(log.Fields{
-		"TryStartJob-DO": jobExecuteInfo,
+		"handleJobResult": result,
+		"output":          string(result.Output),
 	}).Log(log.InfoLevel)
 }
