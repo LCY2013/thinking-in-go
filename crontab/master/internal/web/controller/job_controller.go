@@ -46,3 +46,36 @@ func (c *JobController) CreateJob(ctx context.Context, createJobRequest *CreateJ
 
 	return resp, err
 }
+
+type DelJobRequest struct {
+	Name string `json:"name"` // 任务名称
+}
+
+type DelJobResponse struct {
+	jobentity.JobEntity
+}
+
+func (c *JobController) DelJob(ctx context.Context, delJobRequest *DelJobRequest) (*DelJobResponse, error) {
+	var (
+		err    error
+		oldJob *jobentity.JobEntity
+	)
+
+	log.WithFields(log.Fields{
+		"DelJob": "DelJob",
+	}).Logf(log.InfoLevel, "%+v", *delJobRequest)
+	if delJobRequest == nil {
+		return &DelJobResponse{}, nil
+	}
+
+	// 从etcd中删除
+	oldJob, err = jobservice.G_MGR.DeleteJob(ctx, delJobRequest.Name)
+
+	resp := &DelJobResponse{}
+
+	if oldJob != nil {
+		resp.JobEntity = *oldJob
+	}
+
+	return resp, err
+}

@@ -88,3 +88,33 @@ func (mgr *Mgr) SaveJob(ctx context.Context, job *jobEntity.JobEntity) (oldJob *
 
 	return
 }
+
+// DeleteJob 删除job信息
+func (mgr *Mgr) DeleteJob(ctx context.Context, jobName string) (oldJob *jobEntity.JobEntity, err error) {
+	// 把任务保存到/cron/jobs/任务名称 -> json
+	var (
+		jobKey  string
+		delResp *clientv3.DeleteResponse
+		preJob  jobEntity.JobEntity
+	)
+
+	// etcd 的保存key
+	jobKey = fmt.Sprintf("/cron/jobs/%s", jobName)
+
+	// 保存到etcd中，并且获取以前的值信息
+	if delResp, err = mgr.kv.Delete(ctx, jobKey, clientv3.WithPrevKV()); err != nil {
+		return nil, err
+	}
+
+	// 如果时更新，那么返回新值
+	if delResp.PrevKvs == nil || len(delResp.PrevKvs) == 0 {
+		return
+	}
+
+	// 反序列化到老值上面
+	_ = json.Unmarshal(delResp.PrevKvs[0].Value, &preJob)
+
+	oldJob = &preJob
+
+	return
+}

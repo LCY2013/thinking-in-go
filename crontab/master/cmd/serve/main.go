@@ -63,19 +63,22 @@ func main() {
 	}
 }
 
+// startServerApp App start
 func startServerApp(webContainer *webcontainer.WebContainer) {
 	app := container.NewApp(configs.Conf().AppName,
 		container.BuildMultipleGinServe(configs.Conf().Serves),
-		container.WithShutdownCallbacks(StoreCacheToDBCallback))
+		container.WithShutdownCallbacks(ContainerCallback))
 
 	router, ok := container.GinEngineByServeName("master")
 	if ok {
 		router.POST("/job/save", _gin.Wrapper(webContainer.JobController.CreateJob))
+		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
 	}
 
 	app.StartAndServe()
 }
 
-func StoreCacheToDBCallback(ctx context.Context) {
+// ContainerCallback App container stop callback
+func ContainerCallback(ctx context.Context) {
 
 }
