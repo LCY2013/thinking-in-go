@@ -115,8 +115,13 @@ func parseArgs(ctx *gin.Context, ftype reflect.Type, fnInNum int) []reflect.Valu
 	argv := make([]reflect.Value, fnInNum)
 	for i := 0; i < fnInNum; i++ {
 		inType := ftype.In(i)
+		// 参数是ctx时
+		if inType.Implements(ctxType) {
+			argv[i] = reflect.ValueOf(ctx)
+			continue
+		}
 		if inType.Kind() != reflect.Ptr {
-			input := reflect.New(inType).Interface()
+			input := reflect.New(inType).Elem().Interface()
 			_ = ctx.ShouldBind(input)
 
 			argv[i] = reflect.ValueOf(input)
@@ -129,16 +134,10 @@ func parseArgs(ctx *gin.Context, ftype reflect.Type, fnInNum int) []reflect.Valu
 			actInType = actInType.Elem()
 		}
 		if actInType.Kind() != reflect.Struct && actInType.Kind() != reflect.Map && !inType.Implements(ctxType) {
-			input := reflect.New(inType).Interface()
+			input := reflect.New(inType).Elem().Interface()
 			_ = ctx.ShouldBindQuery(input)
 
 			argv[i] = reflect.ValueOf(input)
-			continue
-		}
-
-		// 参数是ctx时
-		if inType.Implements(ctxType) {
-			argv[i] = reflect.ValueOf(ctx)
 			continue
 		}
 
@@ -148,7 +147,7 @@ func parseArgs(ctx *gin.Context, ftype reflect.Type, fnInNum int) []reflect.Valu
 			continue
 		}
 
-		input := reflect.New(inType).Interface()
+		input := reflect.New(inType).Elem().Interface()
 		_ = ctx.ShouldBind(input)
 
 		argv[i] = reflect.ValueOf(input)
