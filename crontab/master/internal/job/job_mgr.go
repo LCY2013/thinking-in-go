@@ -154,3 +154,31 @@ func (mgr *Mgr) ListJob(ctx context.Context) (jobList []*jobEntity.JobEntity, er
 
 	return
 }
+
+// KillJob kill job
+func (mgr *Mgr) KillJob(ctx context.Context, jobName string) (err error) {
+	// 更新一些key=/cron/killer/任务名
+	var (
+		killerKey      string
+		leaseGrantResp *clientv3.LeaseGrantResponse
+		leaseId        clientv3.LeaseID
+	)
+
+	// 通知worker节点kill 对应的任务
+	killerKey = fmt.Sprintf("%s%s", constants.JobKillDir, jobName)
+
+	// 让worker监听一次put操作，创建一个租约让其稍后自动过期
+	if leaseGrantResp, err = mgr.lease.Grant(ctx, 1); err != nil {
+		return
+	}
+
+	// 租约ID
+	leaseId = leaseGrantResp.ID
+
+	// 设置killer标记
+	if _, err = mgr.kv.Put(ctx, killerKey, "", clientv3.WithLease(leaseId)); err != nil {
+		return
+	}
+
+	return
+}

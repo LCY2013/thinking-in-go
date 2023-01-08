@@ -74,6 +74,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		router.POST("/job/save", _gin.Wrapper(webContainer.JobController.CreateJob))
 		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
 		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
+		router.POST("/job/kill", _gin.Wrapper(webContainer.JobController.KillJob))
 	}
 
 	app.StartAndServe()

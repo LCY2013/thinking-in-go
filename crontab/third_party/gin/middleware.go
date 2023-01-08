@@ -56,6 +56,7 @@ func Wrapper(function any) gin.HandlerFunc {
 				ctx.JSON(http.StatusOK, &HttpResponse{
 					Code: -1,
 					Msg:  err.Error(),
+					Data: struct{}{},
 				})
 				return
 			}

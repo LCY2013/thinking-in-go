@@ -94,7 +94,7 @@ func (c *JobController) ListJob(ctx context.Context, listJobRequest *ListJobRequ
 	)
 
 	log.WithFields(log.Fields{
-		"DelJob": "DelJob",
+		"ListJob": "ListJob",
 	}).Logf(log.InfoLevel, "%+v", *listJobRequest)
 	if listJobRequest == nil {
 		return &ListJobResponse{}, nil
@@ -110,4 +110,29 @@ func (c *JobController) ListJob(ctx context.Context, listJobRequest *ListJobRequ
 	}
 
 	return resp, err
+}
+
+type KillJobRequest struct {
+	Name string `json:"name"` // 任务名称
+}
+
+type KillJobResponse struct {
+}
+
+func (c *JobController) KillJob(ctx context.Context, killJobRequest *KillJobRequest) error {
+	var (
+		err error
+	)
+
+	log.WithFields(log.Fields{
+		"KillJob": "KillJob",
+	}).Logf(log.InfoLevel, "%+v", *killJobRequest)
+	if killJobRequest == nil {
+		return nil
+	}
+
+	// 从etcd中删除
+	err = jobservice.G_MGR.KillJob(ctx, killJobRequest.Name)
+
+	return err
 }
