@@ -1,4 +1,14 @@
+# 应用名称
 appName: "crontab"
+
+# 启动服务信息
 serves:
   - {"serveName": "master", "servePort": 8080, "readTimeOut": 5000, "writeTimeOut": 5000}
   - {"serveName": "master-manager", "servePort": 8081, "readTimeOut": 5000, "writeTimeOut": 5000}
+
+# etcd配置信息
+etcd:
+  server:
+    endpoints:
+      - "127.0.0.1:2379"
+    dialTimeout: 5000

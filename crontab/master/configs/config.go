@@ -2,7 +2,9 @@ package configs
 
 import (
 	"github.com/LCY2013/thinking-in-go/crontab/container"
+	_etcd "github.com/LCY2013/thinking-in-go/crontab/third_party/etcd"
 	"github.com/LCY2013/thinking-in-go/crontab/tools"
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -10,8 +12,9 @@ import (
 )
 
 type Config struct {
-	AppName string             `json:"appName"`
-	Serves  []*container.Serve `json:"serves"`
+	AppName string            `json:"appName"`
+	Serves  []container.Serve `json:"serves"`
+	Etcd    _etcd.EtcdConfig  `json:"etcd"`
 }
 
 var (
@@ -51,12 +54,16 @@ func readInConfig() error {
 	if pwd, err = tools.Pwd(); err == nil {
 		viper.AddConfigPath(pwd) // optionally look for config in the working directory
 	}
+
 	err = viper.ReadInConfig() // Find and read the config file
 	if err != nil {            // Handle errors reading the config file
 		return err
 	}
 	conf = &Config{}
-	return viper.Unmarshal(conf)
+
+	return viper.Unmarshal(conf, func(c *mapstructure.DecoderConfig) {
+		c.TagName = "json"
+	})
 }
 
 // Conf 直接获取conf

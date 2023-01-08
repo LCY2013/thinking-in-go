@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
+	"github.com/LCY2013/thinking-in-go/crontab/master/internal/job"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
 	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
@@ -28,6 +29,7 @@ func main() {
 		// to build those types using the constructors above. Since we call
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
+		fx.Invoke(job.InitMgr),
 		fx.Invoke(startServerApp),
 
 		// This is optional. With this, you can control where Fx logs

@@ -17,7 +17,7 @@ type Serve struct {
 }
 
 // BuildMultipleGinServe 构建多个服务
-func BuildMultipleGinServe(serves []*Serve) []*Server {
+func BuildMultipleGinServe(serves []Serve) []*Server {
 	if serves == nil || len(serves) == 0 {
 		return nil
 	}

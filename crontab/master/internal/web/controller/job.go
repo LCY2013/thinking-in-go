@@ -1,6 +1,9 @@
 package controller
 
-import log "github.com/sirupsen/logrus"
+import (
+	"context"
+	log "github.com/sirupsen/logrus"
+)
 
 type JobController struct {
 }
@@ -13,7 +16,7 @@ type CreateJobRequest struct {
 	JobName string `json:"jobName"`
 }
 
-func (c *JobController) CreateJob(createJobRequest *CreateJobRequest) error {
+func (c *JobController) CreateJob(ctx context.Context, createJobRequest *CreateJobRequest) error {
 	log.WithFields(log.Fields{
 		"CreateJob": "CreateJob",
 	}).Logf(log.InfoLevel, "%+v", *createJobRequest)
