@@ -44,29 +44,35 @@ func Wrapper(function any) gin.HandlerFunc {
 
 		fnRet := fv.Call(argv)
 
-		for i := 0; i < fnOutNum; i++ {
+		for i := 0; i < fnOutNum; {
 			idxRet := fnRet[i].Interface()
 			if fnRet[i].Type().Implements(errType) && idxRet != nil {
 				err := idxRet.(error)
+				log.WithFields(log.Fields{
+					"gin-Wrapper": "err",
+					"err":         err,
+				}).Errorf("func: %+v", function)
+
 				ctx.JSON(http.StatusOK, &HttpResponse{
 					Code: -1,
 					Msg:  err.Error(),
 				})
-				goto OUT
+				return
 			}
 			if idxRet == nil {
 				ctx.JSON(http.StatusOK, &HttpResponse{
 					Code: 0,
 					Data: struct{}{},
 				})
-				goto OUT
+				return
 			}
 			ctx.JSON(http.StatusOK, &HttpResponse{
 				Code: 0,
 				Data: idxRet,
 			})
+			return
 		}
-	OUT:
+
 		if fnOutNum == 0 {
 			ctx.JSON(http.StatusOK, &HttpResponse{
 				Code: 0,

@@ -226,7 +226,7 @@ func WithHandleServerReadTimeout(readTimeout int) HandleServerOption {
 		if readTimeout <= 0 {
 			readTimeout = 3000
 		}
-		server.srv.ReadTimeout = time.Duration(readTimeout)
+		server.srv.ReadTimeout = time.Duration(readTimeout) * time.Millisecond
 	}
 }
 
@@ -235,7 +235,7 @@ func WithHandleServerWriteTimeout(writeTimeout int) HandleServerOption {
 		if writeTimeout <= 0 {
 			writeTimeout = 3000
 		}
-		server.srv.WriteTimeout = time.Duration(writeTimeout)
+		server.srv.WriteTimeout = time.Duration(writeTimeout) * time.Millisecond
 	}
 }
 

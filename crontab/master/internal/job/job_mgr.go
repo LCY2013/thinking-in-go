@@ -1,6 +1,10 @@
-package job
+package service
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	jobEntity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"sync"
@@ -27,8 +31,6 @@ func InitMgr() (err error) {
 		var (
 			config clientv3.Config
 			client *clientv3.Client
-			lease  clientv3.Lease
-			kv     clientv3.KV
 		)
 
 		// 初始化配置
@@ -45,9 +47,44 @@ func InitMgr() (err error) {
 		// 得到KV和Lease的API子集
 		G_MGR = &Mgr{
 			client: client,
-			kv:     kv,
-			lease:  lease,
+			kv:     client.KV,
+			lease:  client.Lease,
 		}
 	})
+	return
+}
+
+// SaveJob 保存job信息
+func (mgr *Mgr) SaveJob(ctx context.Context, job *jobEntity.JobEntity) (oldJob *jobEntity.JobEntity, err error) {
+	// 把任务保存到/cron/jobs/任务名称 -> json
+	var (
+		jobKey   string
+		jobValue []byte
+		putResp  *clientv3.PutResponse
+		preJob   jobEntity.JobEntity
+	)
+
+	// etcd 的保存key
+	jobKey = fmt.Sprintf("/cron/jobs/%s", job.Name)
+	// 序列化任务信息
+	if jobValue, err = json.Marshal(job); err != nil {
+		return nil, err
+	}
+
+	// 保存到etcd中，并且获取以前的值信息
+	if putResp, err = mgr.kv.Put(ctx, jobKey, string(jobValue), clientv3.WithPrevKV()); err != nil {
+		return nil, err
+	}
+
+	// 如果时更新，那么返回新值
+	if putResp.PrevKv == nil {
+		return
+	}
+
+	// 反序列化到老值上面
+	_ = json.Unmarshal(putResp.PrevKv.Value, &preJob)
+
+	oldJob = &preJob
+
 	return
 }
