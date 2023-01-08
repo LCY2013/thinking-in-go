@@ -10,8 +10,9 @@ import (
 
 // Scheduler 任务调度
 type Scheduler struct {
-	jobEventChan chan *entity.JobEvent              // etcd 任务事件队列
-	jobPlanTable map[string]*entity.JobSchedulePlan // 任务执行计划表
+	jobEventChan      chan *entity.JobEvent              // etcd 任务事件队列
+	jobPlanTable      map[string]*entity.JobSchedulePlan // 任务执行计划表
+	jobExecutingTable map[string]*entity.JobExecuteInfo  // 任务执行表
 }
 
 var (
@@ -21,8 +22,9 @@ var (
 // InitScheduler 初始化调度器
 func InitScheduler() (err error) {
 	GScheduler = &Scheduler{
-		jobEventChan: make(chan *entity.JobEvent, 1000),
-		jobPlanTable: make(map[string]*entity.JobSchedulePlan, 1000),
+		jobEventChan:      make(chan *entity.JobEvent, 1000),
+		jobPlanTable:      make(map[string]*entity.JobSchedulePlan, 100),
+		jobExecutingTable: make(map[string]*entity.JobExecuteInfo, 100),
 	}
 
 	// 启动调度协程
@@ -116,10 +118,11 @@ func (s *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	for _, jobPlan = range s.jobPlanTable {
 		// 过期的任务立即执行
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-			// TODO 尝试执行任务
 			log.WithFields(log.Fields{
 				"TrySchedule-DO": jobPlan,
 			}).Log(log.InfoLevel)
+			// 尝试执行任务
+			s.TryStartJob(jobPlan)
 			jobPlan.NextTime = jobPlan.Expr.Next(now) // 更新下一次执行的时间
 		}
 
@@ -134,4 +137,33 @@ func (s *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 		scheduleAfter = (*nearTime).Sub(now)
 	}
 	return
+}
+
+// TryStartJob 尝试执行任务
+func (s *Scheduler) TryStartJob(jobPlan *entity.JobSchedulePlan) {
+	var (
+		jobExecuteInfo *entity.JobExecuteInfo
+		jobExecuting   bool
+	)
+	// 调度和执行两件事
+
+	// 执行的任务可能允许很久，1分钟会调度60次，但是只执行一次
+	if jobExecuteInfo, jobExecuting = s.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
+		log.WithFields(log.Fields{
+			"TryStartJob-UNDO": jobExecuteInfo,
+		}).Log(log.InfoLevel)
+		return
+	}
+
+	// 如果任务正在执行，跳过本次调度
+	jobExecuteInfo = entity.BuildJobExecuteInfo(jobPlan)
+
+	// 保存执行状态
+	s.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
+
+	// 执行任务
+	//TODO:
+	log.WithFields(log.Fields{
+		"TryStartJob-DO": jobExecuteInfo,
+	}).Log(log.InfoLevel)
 }

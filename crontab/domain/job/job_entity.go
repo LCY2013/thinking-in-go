@@ -82,3 +82,20 @@ func BuildJobSchedulePlan(job *JobEntity) (jobSchedulePlan *JobSchedulePlan, err
 
 	return
 }
+
+// JobExecuteInfo 任务执行状态
+type JobExecuteInfo struct {
+	Job      *JobEntity // 任务信息
+	PlanTime time.Time  // 计划调度时间
+	RealTime time.Time  // 实际的调度时间
+}
+
+// BuildJobExecuteInfo 构造执行状态信息
+func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobExecuteInfo) {
+	jobExecuteInfo = &JobExecuteInfo{
+		Job:      jobSchedulePlan.Job,
+		PlanTime: jobSchedulePlan.NextTime, // 计划调度时间
+		RealTime: time.Now(),               // 真实调度时间
+	}
+	return
+}
