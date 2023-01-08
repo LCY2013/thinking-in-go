@@ -7,6 +7,7 @@ import (
 	jobEntity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"sync"
 	"time"
@@ -117,6 +118,39 @@ func (mgr *Mgr) DeleteJob(ctx context.Context, jobName string) (oldJob *jobEntit
 	_ = json.Unmarshal(delResp.PrevKvs[0].Value, &preJob)
 
 	oldJob = &preJob
+
+	return
+}
+
+// ListJob 列举所有job信息
+func (mgr *Mgr) ListJob(ctx context.Context) (jobList []*jobEntity.JobEntity, err error) {
+	var (
+		getResp *clientv3.GetResponse
+		kvPair  *mvccpb.KeyValue
+		dirKey  string
+		job     *jobEntity.JobEntity
+	)
+
+	// 任务根目录
+	dirKey = constants.JobDir
+
+	// 获取目录下所有任务信息
+	if getResp, err = mgr.kv.Get(ctx, dirKey, clientv3.WithPrefix()); err != nil {
+		return
+	}
+
+	// 初始化数组空间
+	jobList = make([]*jobEntity.JobEntity, 0)
+
+	// 遍历所有任务进行反序列化
+	for _, kvPair = range getResp.Kvs {
+		job = &jobEntity.JobEntity{}
+		if err = json.Unmarshal(kvPair.Value, job); err != nil {
+			err = nil
+			continue
+		}
+		jobList = append(jobList, job)
+	}
 
 	return
 }

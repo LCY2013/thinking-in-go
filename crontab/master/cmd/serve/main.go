@@ -73,6 +73,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 	if ok {
 		router.POST("/job/save", _gin.Wrapper(webContainer.JobController.CreateJob))
 		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
+		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
 	}
 
 	app.StartAndServe()

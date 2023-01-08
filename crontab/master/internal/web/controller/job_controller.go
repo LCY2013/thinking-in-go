@@ -79,3 +79,35 @@ func (c *JobController) DelJob(ctx context.Context, delJobRequest *DelJobRequest
 
 	return resp, err
 }
+
+type ListJobRequest struct {
+}
+
+type ListJobResponse struct {
+	JobList []*jobentity.JobEntity `json:"jobList"`
+}
+
+func (c *JobController) ListJob(ctx context.Context, listJobRequest *ListJobRequest) (*ListJobResponse, error) {
+	var (
+		err     error
+		listJob []*jobentity.JobEntity
+	)
+
+	log.WithFields(log.Fields{
+		"DelJob": "DelJob",
+	}).Logf(log.InfoLevel, "%+v", *listJobRequest)
+	if listJobRequest == nil {
+		return &ListJobResponse{}, nil
+	}
+
+	// 从etcd中删除
+	listJob, err = jobservice.G_MGR.ListJob(ctx)
+
+	resp := &ListJobResponse{}
+
+	if listJob != nil {
+		resp.JobList = listJob
+	}
+
+	return resp, err
+}
