@@ -49,6 +49,9 @@ func (e *Executor) ExecuteJob(info *entity.JobExecuteInfo) {
 		// 释放锁
 		defer jobLock.UnLock()
 
+		// 上锁成功后重置任务启动时间
+		result.StartTime = time.Now()
+
 		// 执行shell命令
 		cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", info.Job.Command)
 
