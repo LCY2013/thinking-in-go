@@ -1,9 +1,9 @@
 package service
 
 import (
-	"context"
 	entity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
+	"math/rand"
 	"os/exec"
 	"time"
 )
@@ -39,6 +39,9 @@ func (e *Executor) ExecuteJob(info *entity.JobExecuteInfo) {
 		// 记录任务开始时间
 		result.StartTime = time.Now()
 
+		// 随机休眠（0-1）s
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+
 		if err = jobLock.TryLock(); err != nil {
 			result.EndTime = time.Now()
 			result.Err = err
@@ -53,7 +56,7 @@ func (e *Executor) ExecuteJob(info *entity.JobExecuteInfo) {
 		result.StartTime = time.Now()
 
 		// 执行shell命令
-		cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", info.Job.Command)
+		cmd = exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
 
 		// 执行并捕获输出
 		output, err = cmd.CombinedOutput()

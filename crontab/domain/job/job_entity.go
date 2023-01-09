@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/gorhill/cronexpr"
@@ -85,9 +86,11 @@ func BuildJobSchedulePlan(job *JobEntity) (jobSchedulePlan *JobSchedulePlan, err
 
 // JobExecuteInfo 任务执行状态
 type JobExecuteInfo struct {
-	Job      *JobEntity // 任务信息
-	PlanTime time.Time  // 计划调度时间
-	RealTime time.Time  // 实际的调度时间
+	Job        *JobEntity         // 任务信息
+	PlanTime   time.Time          // 计划调度时间
+	RealTime   time.Time          // 实际的调度时间
+	CancelCtx  context.Context    `json:"-"` // command命令任务取消的context
+	CancelFunc context.CancelFunc `json:"-"` // command命令任务取消的func
 }
 
 // BuildJobExecuteInfo 构造执行状态信息
@@ -97,6 +100,8 @@ func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobE
 		PlanTime: jobSchedulePlan.NextTime, // 计划调度时间
 		RealTime: time.Now(),               // 真实调度时间
 	}
+
+	jobExecuteInfo.CancelCtx, jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
 	return
 }
 
@@ -107,4 +112,10 @@ type JobExecuteResult struct {
 	Err         error           // 脚本错误原因
 	StartTime   time.Time       // 启动时间
 	EndTime     time.Time       // 结束时间
+}
+
+// ExtractKillerName 从ETCD的key中获取对应的强杀任务名称
+// /cron/killer/job0 -> job0
+func ExtractKillerName(killerName string) string {
+	return strings.TrimPrefix(killerName, constants.JobKillDir)
 }

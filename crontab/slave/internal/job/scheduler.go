@@ -76,6 +76,8 @@ func (s *Scheduler) handleJobEvent(jobEvent *entity.JobEvent) {
 		err            error
 		jobSchedulePan *entity.JobSchedulePlan
 		jobExisted     bool
+		jobExecuting   bool
+		jobExecutInfo  *entity.JobExecuteInfo
 	)
 
 	switch jobEvent.EventType {
@@ -95,6 +97,12 @@ func (s *Scheduler) handleJobEvent(jobEvent *entity.JobEvent) {
 			return
 		}
 		delete(s.jobPlanTable, jobEvent.Job.Name)
+	case constants.JobEventKill: // 强杀任务事件
+		// 取消command执行，如果任务在执行中，就杀死执行任务
+		if jobExecutInfo, jobExecuting = s.jobExecutingTable[jobEvent.Job.Name]; jobExecuting {
+			// 触发上下文取消的执行，执行杀死任务
+			jobExecutInfo.CancelFunc()
+		}
 	}
 }
 

@@ -59,6 +59,9 @@ func InitMgr() (err error) {
 	// 启动任务监听
 	err = G_MGR.WatchJobs(context.Background())
 
+	// 启动强杀kill任务通知
+	G_MGR.watchKiller()
+
 	return
 }
 
@@ -154,4 +157,42 @@ func (mgr *Mgr) WatchJobs(ctx context.Context) (err error) {
 // CreateJobLock 构建一个job锁
 func (mgr *Mgr) CreateJobLock(jobName string) (jobLock *JobLock) {
 	return InitJobLock(jobName, mgr.kv, mgr.lease)
+}
+
+// watchKiller 监听强杀任务通知
+func (mgr *Mgr) watchKiller() {
+	var (
+		watchChan  clientv3.WatchChan
+		watchResp  clientv3.WatchResponse
+		watchEvent *clientv3.Event
+		job        *entity.JobEntity
+		jobEvent   *entity.JobEvent
+		jobName    string
+	)
+
+	// 监听/cron/killer目录
+	async.GO(func() {
+		// 监听协程
+		// 监听/cron/killer目录变化
+		watchChan = mgr.watcher.Watch(context.Background(), constants.JobKillDir, clientv3.WithPrefix())
+		// 处理监听事件
+		for watchResp = range watchChan {
+			for _, watchEvent = range watchResp.Events {
+				switch watchEvent.Type {
+				case mvccpb.PUT: // 杀死任务通知
+					// /cron/killer/job0 -> job0
+					jobName = entity.ExtractKillerName(string(watchEvent.Kv.Key))
+					job = &entity.JobEntity{
+						Name: jobName,
+					}
+					jobEvent = entity.BuildJobEvent(constants.JobEventKill, job)
+					// 推一个变化事件给scheduler
+					GScheduler.PushJobEvent(jobEvent)
+				case mvccpb.DELETE: // killer标记过期，被自动删除
+
+				}
+
+			}
+		}
+	})
 }
