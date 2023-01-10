@@ -18,8 +18,10 @@ type Config struct {
 	Etcd    _etcd.EtcdConfig     `json:"etcd"`
 	MongoDB _mongo.MongoDBConfig `json:"mongodb"`
 	Log     struct {
-		DB         string `json:"db"`
-		Collection string `json:"collection"`
+		DB                  string `json:"db"`
+		Collection          string `json:"collection"`
+		InsertBatchSize     int    `json:"insertBatchSize"`
+		AutoCommitTimestamp int    `json:"autoCommitTimestamp"`
 	} `json:"log"`
 }
 

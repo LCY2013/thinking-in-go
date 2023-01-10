@@ -19,5 +19,11 @@ mongodb:
 
 #  log db与collection配置
 log:
+#  存储的数据库名称
   db: "cron"
+#  存储的表名称
   collection: "log"
+#  存储的单批次最大值
+  insertBatchSize: 200
+#  日志批次自动提交的时间间隔(ms)
+  autoCommitTimestamp: 1000

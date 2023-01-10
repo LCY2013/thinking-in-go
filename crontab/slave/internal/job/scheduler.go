@@ -5,6 +5,7 @@ import (
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/errors"
+	"github.com/LCY2013/thinking-in-go/crontab/slave/internal/persistent/sink"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -215,5 +216,6 @@ func (s *Scheduler) handleJobResult(result *entity.JobExecuteResult) {
 		jobLog.Err = result.Err.Error()
 	}
 
-	// TODO: 存储到数据库
+	// 发送日志给存储中间间
+	sink.GLogSink.Append(jobLog)
 }
