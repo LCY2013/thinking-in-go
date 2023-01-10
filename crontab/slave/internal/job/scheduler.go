@@ -4,6 +4,7 @@ import (
 	entity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
+	"github.com/LCY2013/thinking-in-go/crontab/lib/errors"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -190,4 +191,29 @@ func (s *Scheduler) handleJobResult(result *entity.JobExecuteResult) {
 		"handleJobResult": result,
 		"output":          string(result.Output),
 	}).Log(log.InfoLevel)
+
+	// 生成执行日志
+	if result.Err == errors.ErrLockAlreadyRequired {
+		return
+	}
+
+	var (
+		jobLog *entity.JobLog
+	)
+
+	jobLog = &entity.JobLog{
+		JobName:      result.ExecuteInfo.Job.Name,
+		Command:      result.ExecuteInfo.Job.Command,
+		Output:       string(result.Output),
+		PlanTime:     result.ExecuteInfo.PlanTime.UnixMilli(),
+		ScheduleTime: result.ExecuteInfo.RealTime.UnixMilli(),
+		StartTime:    result.StartTime.UnixMilli(),
+		EndTime:      result.EndTime.UnixMilli(),
+	}
+
+	if result.Err != nil {
+		jobLog.Err = result.Err.Error()
+	}
+
+	// TODO: 存储到数据库
 }

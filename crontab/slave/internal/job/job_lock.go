@@ -93,7 +93,7 @@ func (jobLock *JobLock) TryLock() (err error) {
 
 	// 成功返回，失败释放租约
 	if !txnResp.Succeeded { // 锁被占用
-		err = errors.ERR_LOCK_ALREADY_REQUIRED
+		err = errors.ErrLockAlreadyRequired
 		goto FAIL
 	}
 

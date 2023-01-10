@@ -119,3 +119,15 @@ type JobExecuteResult struct {
 func ExtractKillerName(killerName string) string {
 	return strings.TrimPrefix(killerName, constants.JobKillDir)
 }
+
+// JobLog 任务执行日志
+type JobLog struct {
+	JobName      string `bson:"jobName"`      // 任务名字
+	Command      string `bson:"command"`      // 脚本命令
+	Err          string `bson:"err"`          // 错误原因
+	Output       string `bson:"output"`       // 输出信息
+	PlanTime     int64  `bson:"planTime"`     // 计划开始时间
+	ScheduleTime int64  `bson:"scheduleTime"` // 实际调度时间
+	StartTime    int64  `bson:"startTime"`    // 任务执行开始时间
+	EndTime      int64  `bson:"endTime"`      // 任务执行结束时间
+}

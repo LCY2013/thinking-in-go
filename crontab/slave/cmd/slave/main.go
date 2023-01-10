@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/configs"
+	"github.com/LCY2013/thinking-in-go/crontab/slave/internal/persistent/sink"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/slave/internal/web/container"
 
 	service "github.com/LCY2013/thinking-in-go/crontab/slave/internal/job"
@@ -31,6 +32,7 @@ func main() {
 		fx.Invoke(
 			service.InitScheduler,
 			service.InitMgr,
+			sink.InitLogSink,
 			startServerApp,
 		),
 	)

@@ -11,3 +11,13 @@ etcd:
     endpoints:
       - "127.0.0.1:2379"
     dialTimeout: 5000
+
+# mongodb 配置
+mongodb:
+  uri: "mongodb://root:123456@127.0.0.1:27017"
+  connectionTimeout: 5000
+
+#  log db与collection配置
+log:
+  db: "cron"
+  collection: "log"

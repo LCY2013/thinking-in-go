@@ -3,6 +3,7 @@ package configs
 import (
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	_etcd "github.com/LCY2013/thinking-in-go/crontab/third_party/etcd"
+	_mongo "github.com/LCY2013/thinking-in-go/crontab/third_party/mongo"
 	"github.com/LCY2013/thinking-in-go/crontab/tools"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
@@ -12,9 +13,14 @@ import (
 )
 
 type Config struct {
-	AppName string            `json:"appName"`
-	Serves  []container.Serve `json:"serves"`
-	Etcd    _etcd.EtcdConfig  `json:"etcd"`
+	AppName string               `json:"appName"`
+	Serves  []container.Serve    `json:"serves"`
+	Etcd    _etcd.EtcdConfig     `json:"etcd"`
+	MongoDB _mongo.MongoDBConfig `json:"mongodb"`
+	Log     struct {
+		DB         string `json:"db"`
+		Collection string `json:"collection"`
+	} `json:"log"`
 }
 
 var (
