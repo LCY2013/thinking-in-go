@@ -4,6 +4,7 @@ import (
 	"context"
 	jobentity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
 	jobservice "github.com/LCY2013/thinking-in-go/crontab/master/internal/job"
+	logMgr "github.com/LCY2013/thinking-in-go/crontab/master/internal/log"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -135,4 +136,35 @@ func (c *JobController) KillJob(ctx context.Context, killJobRequest *KillJobRequ
 	err = jobservice.G_MGR.KillJob(ctx, killJobRequest.Name)
 
 	return err
+}
+
+type QueryJobLogRequest struct {
+	Name  string `json:"name"`  // 任务名称
+	Skip  int64  `json:"skip"`  // 从哪里开始
+	Limit int64  `json:"limit"` // 返回多少条
+}
+
+type QueryJobLogResponse struct {
+	LogArr []*jobentity.JobLog `json:"logArr"` // 日志列表
+}
+
+// QueryJobLog 查询任务日志
+func (c *JobController) QueryJobLog(ctx context.Context, queryJobLogRequest *QueryJobLogRequest) (*QueryJobLogResponse, error) {
+	var (
+		err    error
+		logArr []*jobentity.JobLog
+	)
+
+	// 参数前置校验
+	if queryJobLogRequest.Limit == 0 {
+		queryJobLogRequest.Limit = 20
+	}
+
+	if logArr, err = logMgr.GLogMgr.ListLog(queryJobLogRequest.Name, queryJobLogRequest.Skip, queryJobLogRequest.Limit); err != nil {
+		return &QueryJobLogResponse{}, err
+	}
+
+	return &QueryJobLogResponse{
+		LogArr: logArr,
+	}, nil
 }

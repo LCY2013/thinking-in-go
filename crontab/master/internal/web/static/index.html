@@ -248,11 +248,12 @@
                     dataType: 'json',
                     data: JSON.stringify({name: jobName}),
                     success: function(resp) {
-                        if (resp.code != 0) {
+                        if (resp.code !== 0) {
                             return
                         }
+
                         // 遍历日志
-                        var logList = resp.data
+                        var logList = resp.data.logArr
                         for (var i = 0; i < logList.length; ++i) {
                             var log = logList[i]
                             var tr = $('<tr>')
@@ -286,7 +287,7 @@
                     dataType: 'json',
                     data: JSON.stringify({}),
                     success: function(resp) {
-                        if (resp.code != 0) {
+                        if (resp.code !== 0) {
                             return
                         }
 
@@ -315,7 +316,7 @@
                     dataType: 'json',
                     data: JSON.stringify({}),
                     success: function(resp) {
-                        if (resp.code != 0) {  // 服务端出错了
+                        if (resp.code !== 0) {  // 服务端出错了
                             return
                         }
                         // 任务数组

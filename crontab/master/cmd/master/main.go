@@ -5,10 +5,10 @@ import (
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	service "github.com/LCY2013/thinking-in-go/crontab/master/internal/job"
+	logMgr "github.com/LCY2013/thinking-in-go/crontab/master/internal/log"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
 	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/fx"
@@ -32,6 +32,7 @@ func main() {
 		// to build those types using the constructors above. Since we call
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
+		fx.Invoke(logMgr.InitLogMgr),
 		fx.Invoke(service.InitMgr),
 		fx.Invoke(startServerApp),
 
@@ -78,12 +79,13 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		router.POST("/job/del", _gin.Wrapper(webContainer.JobController.DelJob))
 		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
 		router.POST("/job/kill", _gin.Wrapper(webContainer.JobController.KillJob))
+		router.POST("/job/log", _gin.Wrapper(webContainer.JobController.QueryJobLog))
 		// CORS for https://foo.com and https://github.com origins, allowing:
 		// - PUT and PATCH methods
 		// - Origin header
 		// - Credentials share
 		// - Preflight requests cached for 12 hours
-		router.Use(cors.New(cors.Config{
+		/*router.Use(cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"POST", "GET", "OPTIONS", "DELETE", "PATCH", "PUT"},
 			AllowHeaders:     []string{"Content-Type", "AccessToken", "X-CSRF-Token", "Authorization", "Token", "x-token"},
@@ -94,7 +96,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 				return true
 			},
 			MaxAge: 12 * time.Hour,
-		}))
+		}))*/
 
 		// manage
 		router.LoadHTMLGlob(container.ServeByServeName("master").WebRoot)
@@ -105,7 +107,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		})
 	}
 
-	router, ok = container.GinEngineByServeName("master-manager")
+	/*router, ok = container.GinEngineByServeName("master-manager")
 	if ok {
 		router.LoadHTMLGlob(container.ServeByServeName("master-manager").WebRoot)
 		router.GET("/index.html", func(c *gin.Context) {
@@ -130,7 +132,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 			},
 			MaxAge: 12 * time.Hour,
 		}))
-	}
+	}*/
 
 	app.StartAndServe()
 }
