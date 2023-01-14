@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/LCY2013/thinking-in-go/crontab/container"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/configs"
+	"github.com/LCY2013/thinking-in-go/crontab/slave/dr/etcd"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/internal/persistent/sink"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/slave/internal/web/container"
 
@@ -30,6 +31,7 @@ func main() {
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
 		fx.Invoke(
+			etcd.InitRegister,
 			service.InitScheduler,
 			service.InitMgr,
 			sink.InitLogSink,
