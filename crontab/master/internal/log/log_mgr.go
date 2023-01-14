@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	entity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	entity "github.com/LCY2013/thinking-in-go/crontab/domain"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"

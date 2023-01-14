@@ -8,6 +8,7 @@ import (
 	logMgr "github.com/LCY2013/thinking-in-go/crontab/master/internal/log"
 	webcontainer "github.com/LCY2013/thinking-in-go/crontab/master/internal/web/container"
 	"github.com/LCY2013/thinking-in-go/crontab/master/internal/web/controller"
+	"github.com/LCY2013/thinking-in-go/crontab/master/internal/worker"
 	_gin "github.com/LCY2013/thinking-in-go/crontab/third_party/gin"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -32,9 +33,12 @@ func main() {
 		// to build those types using the constructors above. Since we call
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
-		fx.Invoke(logMgr.InitLogMgr),
-		fx.Invoke(service.InitMgr),
-		fx.Invoke(startServerApp),
+		fx.Invoke(
+			worker.InitWorkerMgr,
+			logMgr.InitLogMgr,
+			service.InitMgr,
+			startServerApp,
+		),
 
 		// This is optional. With this, you can control where Fx logs
 		// its events. In this case, we're using a NopLogger to keep
@@ -80,6 +84,7 @@ func startServerApp(webContainer *webcontainer.WebContainer) {
 		router.POST("/job/list", _gin.Wrapper(webContainer.JobController.ListJob))
 		router.POST("/job/kill", _gin.Wrapper(webContainer.JobController.KillJob))
 		router.POST("/job/log", _gin.Wrapper(webContainer.JobController.QueryJobLog))
+		router.POST("/worker/list", _gin.Wrapper(webContainer.JobController.WorkerList))
 		// CORS for https://foo.com and https://github.com origins, allowing:
 		// - PUT and PATCH methods
 		// - Origin header

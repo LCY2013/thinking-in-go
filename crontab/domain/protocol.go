@@ -1,4 +1,4 @@
-package entity
+package domain
 
 import (
 	"context"
@@ -145,4 +145,10 @@ type JobLogFilter struct {
 // SortLogByStartTime 任务日志排序规则
 type SortLogByStartTime struct {
 	SortOrder int `bson:"startTime"` // {"startTime": -1}
+}
+
+// ExtractWorkerIP 从ETCD的key中获取对应的IP地址
+// kv.Key:/cron/worker/register/xxxx.xxxx.xxxx.xxxx
+func ExtractWorkerIP(worker string) string {
+	return strings.TrimPrefix(worker, constants.JobWorkerRegisterDir)
 }

@@ -1,7 +1,7 @@
 package service
 
 import (
-	entity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	entity "github.com/LCY2013/thinking-in-go/crontab/domain"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"math/rand"
 	"os/exec"

@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
-	jobentity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	jobentity "github.com/LCY2013/thinking-in-go/crontab/domain"
 	jobservice "github.com/LCY2013/thinking-in-go/crontab/master/internal/job"
 	logMgr "github.com/LCY2013/thinking-in-go/crontab/master/internal/log"
+	"github.com/LCY2013/thinking-in-go/crontab/master/internal/worker"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -166,5 +167,26 @@ func (c *JobController) QueryJobLog(ctx context.Context, queryJobLogRequest *Que
 
 	return &QueryJobLogResponse{
 		LogArr: logArr,
+	}, nil
+}
+
+// WorkerListResponse 工作节点响应信息
+type WorkerListResponse struct {
+	WorkerAddr []string `json:"workerAddr"`
+}
+
+// WorkerList 健康工作节点查询
+func (c *JobController) WorkerList(ctx context.Context) (*WorkerListResponse, error) {
+	var (
+		err     error
+		workArr []string
+	)
+
+	if workArr, err = worker.GWorkerMgr.ListWorkers(); err != nil {
+		return &WorkerListResponse{}, err
+	}
+
+	return &WorkerListResponse{
+		WorkerAddr: workArr,
 	}, nil
 }

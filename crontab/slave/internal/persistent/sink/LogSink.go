@@ -2,7 +2,7 @@ package sink
 
 import (
 	"context"
-	entity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	entity "github.com/LCY2013/thinking-in-go/crontab/domain"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/configs"
 	"github.com/sirupsen/logrus"

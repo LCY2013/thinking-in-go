@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jobEntity "github.com/LCY2013/thinking-in-go/crontab/domain/job"
+	jobEntity "github.com/LCY2013/thinking-in-go/crontab/domain"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/LCY2013/thinking-in-go/crontab/master/configs"
 	"go.etcd.io/etcd/api/v3/mvccpb"
