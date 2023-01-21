@@ -3,7 +3,7 @@ appName: "crontab-salve"
 
 # 启动服务信息
 serves:
-  - {"serveName": "salve", "servePort": 8081, "readTimeOut": 5000, "writeTimeOut": 5000}
+  - {"serveName": "salve", "servePort": 8082, "readTimeOut": 5000, "writeTimeOut": 5000}
 
 # etcd配置信息
 etcd:
@@ -27,3 +27,8 @@ log:
   insertBatchSize: 200
 #  日志批次自动提交的时间间隔(ms)
   autoCommitTimestamp: 1000
+
+consistent:
+  hash:
+    # IP | IP:PORT
+    type: "IP:PORT"

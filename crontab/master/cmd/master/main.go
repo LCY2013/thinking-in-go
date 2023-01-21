@@ -34,6 +34,7 @@ func main() {
 		// NewMux, we also register Lifecycle hooks to start and stop an HTTP
 		// server.
 		fx.Invoke(
+			service.InitWorkerNode,
 			worker.InitWorkerMgr,
 			logMgr.InitLogMgr,
 			service.InitMgr,

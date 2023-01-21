@@ -23,6 +23,11 @@ type Config struct {
 		InsertBatchSize     int    `json:"insertBatchSize"`
 		AutoCommitTimestamp int    `json:"autoCommitTimestamp"`
 	} `json:"log"`
+	Consistent struct {
+		Hash struct {
+			Type string `json:"type"`
+		} `json:"hash"`
+	} `json:"consistent"`
 }
 
 var (

@@ -33,6 +33,7 @@ func main() {
 		fx.Invoke(
 			etcd.InitRegister,
 			service.InitScheduler,
+			service.InitWorkerNode,
 			service.InitMgr,
 			sink.InitLogSink,
 			startServerApp,
@@ -59,7 +60,7 @@ func main() {
 func startServerApp(webContainer *webcontainer.WebContainer) {
 	app := container.NewApp(configs.Conf().AppName,
 		container.BuildMultipleGinServe(configs.Conf().Serves),
-		container.WithShutdownCallbacks(ContainerCallback))
+		container.WithShutdownCallbacks(service.G_MGR.DeleteWorkerDataCallback))
 
 	router, ok := container.GinEngineByServeName("salve")
 	if ok {

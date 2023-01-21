@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
 	"github.com/gorhill/cronexpr"
 	log "github.com/sirupsen/logrus"
@@ -12,9 +13,11 @@ import (
 
 // JobEntity 定时任务
 type JobEntity struct {
-	Name     string `json:"name"`     // 任务名称
-	Command  string `json:"command"`  // shell 命令
-	CronExpr string `json:"cronExpr"` // cron 表达式
+	Name      string `json:"name"`      // 任务名称
+	Command   string `json:"command"`   // shell 命令
+	CronExpr  string `json:"cronExpr"`  // cron 表达式
+	NodeIp    string `json:"nodeIp"`    // 子节点ip
+	OldNodeIp string `json:"oldNodeIp"` // 上次调度的子节点ip
 }
 
 // UnpackJobEntity 反序列化job信息
@@ -37,6 +40,20 @@ func UnpackJobEntity(value []byte) (ret *JobEntity, err error) {
 // /cron/jobs/job0 -> job0
 func ExtractJobName(jobName string) string {
 	return strings.TrimPrefix(jobName, constants.JobDir)
+}
+
+// ExtractNodeJobName 从ETCD的key中获取对应的任务名称
+// /cron/worker/jobs/xxxx.xxxx.xxxx.xxxx/job0 -> job0
+func ExtractNodeJobName(jobName string, prefix string) string {
+	return strings.TrimPrefix(jobName, prefix)
+}
+
+// ExtractNodeInfoName 从ETCD的key中获取对应的节点信息
+// /cron/worker/jobs/xxxx.xxxx.xxxx.xxxx/job0 -> xxxx.xxxx.xxxx.xxxx
+func ExtractNodeInfoName(nodeInfo string, jobName string) string {
+	nodeInfo = strings.TrimPrefix(nodeInfo, constants.WorkerJobs)
+	nodeInfo = strings.TrimSuffix(nodeInfo, fmt.Sprintf("/%s", jobName))
+	return nodeInfo
 }
 
 // JobEvent job event
@@ -151,4 +168,10 @@ type SortLogByStartTime struct {
 // kv.Key:/cron/worker/register/xxxx.xxxx.xxxx.xxxx
 func ExtractWorkerIP(worker string) string {
 	return strings.TrimPrefix(worker, constants.JobWorkerRegisterDir)
+}
+
+// WorkerChangeEvent 工作节点change事件
+type WorkerChangeEvent struct {
+	WorkerName string `json:"memberName"`
+	ChangeType int8   `json:"changeType"`
 }

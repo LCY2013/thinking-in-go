@@ -24,3 +24,9 @@ log:
   db: "cron"
   #  存储的表名称
   collection: "log"
+
+consistent:
+  hash:
+    # IP | IP:PORT
+    type: "IP:PORT"
+    workerNodeNum: 1

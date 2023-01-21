@@ -21,6 +21,12 @@ type Config struct {
 		DB         string `json:"db"`
 		Collection string `json:"collection"`
 	} `json:"log"`
+	Consistent struct {
+		Hash struct {
+			Type          string `json:"type"`
+			WorkerNodeNum int    `json:"workerNodeNum"`
+		} `json:"hash"`
+	} `json:"consistent"`
 }
 
 var (

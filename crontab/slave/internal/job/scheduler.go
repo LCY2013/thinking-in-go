@@ -35,6 +35,17 @@ func InitScheduler() (err error) {
 	async.GO(func() {
 		GScheduler.scheduleLoop()
 	})
+
+	async.GO(func() {
+		timer := time.NewTimer(5 * time.Second)
+		for {
+			<-timer.C
+			log.WithFields(log.Fields{
+				"SchedulerSize": len(GScheduler.jobExecutingTable),
+			}).Info()
+			timer.Reset(5 * time.Second)
+		}
+	})
 	return
 }
 

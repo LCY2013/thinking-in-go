@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/async"
 	"github.com/LCY2013/thinking-in-go/crontab/lib/constants"
-	"github.com/LCY2013/thinking-in-go/crontab/lib/errors"
 	"github.com/LCY2013/thinking-in-go/crontab/slave/configs"
+	"github.com/LCY2013/thinking-in-go/crontab/tools"
+	log "github.com/sirupsen/logrus"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -20,7 +21,8 @@ type Register struct {
 	lease  clientv3.Lease
 
 	localIP string // local IP
-	port    int    // port
+	success bool   // success
+
 }
 
 var (
@@ -50,7 +52,7 @@ func InitRegister() (err error) {
 		}
 
 		// 获取本机IP
-		if localIP, err = getLocalIP(); err != nil {
+		if localIP, err = tools.GetLocalIP(); err != nil {
 			return
 		}
 
@@ -67,38 +69,10 @@ func InitRegister() (err error) {
 	async.GO(func() {
 		GRegister.KeepOnline()
 	})
-	return
-}
 
-// getLocalIP 获取本地网卡IP
-func getLocalIP() (ipv4 string, err error) {
-	var (
-		addrs   []net.Addr
-		addr    net.Addr
-		ipNet   *net.IPNet // IP地址
-		isIpNet bool
-	)
-
-	// 获取所有网卡信息
-	if addrs, err = net.InterfaceAddrs(); err != nil {
-		return
+	for !GRegister.success {
+		time.Sleep(50 * time.Millisecond)
 	}
-
-	// 获取第一个非lo的网卡IP
-	for _, addr = range addrs {
-		// 这个网络地址是IP地址：ipv4，ipv6
-		if ipNet, isIpNet = addr.(*net.IPNet); isIpNet && !ipNet.IP.IsLoopback() {
-			// 跳过IPv6
-			if ipNet.IP.To4() == nil {
-				continue
-			}
-			ipv4 = ipNet.IP.String() // xxxx.xxxx.xxxx.xxxx
-			return
-		}
-	}
-
-	err = errors.ERR_NO_LOCAL_IP_FOUND
-
 	return
 }
 
@@ -107,6 +81,7 @@ func (r *Register) KeepOnline() {
 	var (
 		regKey         string
 		leaseGrantResp *clientv3.LeaseGrantResponse
+		getResp        *clientv3.GetResponse
 		keepAlive      <-chan *clientv3.LeaseKeepAliveResponse
 		keepAliveResp  *clientv3.LeaseKeepAliveResponse
 		cancelCtx      context.Context
@@ -118,10 +93,32 @@ func (r *Register) KeepOnline() {
 		cancelFunc = nil
 
 		// 注册路径
-		regKey = fmt.Sprintf("%s%s", constants.JobWorkerRegisterDir, r.localIP)
+		regKey = fmt.Sprintf("%s/%s", constants.JobWorkerRegisterDir, r.localIP)
 
-		// 创建租约
-		if leaseGrantResp, err = r.lease.Grant(context.TODO(), 10); err != nil {
+		// 如果是IP:PORT类型
+		if configs.Conf().Consistent.Hash.Type == constants.IpPort {
+			// 注册工作节点信息
+			if configs.Conf().Serves == nil || len(configs.Conf().Serves) == 0 {
+				panic("serves config not found")
+			}
+			regKey = fmt.Sprintf("%s%s:%d", constants.JobWorkerRegisterDir, r.localIP, configs.Conf().Serves[0].ServePort)
+		}
+
+		// 先判断是否已经注册, 解决同样的key被使用后，一个移除导致都不可能
+		if getResp, err = r.kv.Get(context.TODO(), regKey); err != nil {
+			goto RETRY
+		}
+		if getResp.Count > 0 {
+			log.WithFields(log.Fields{
+				"register": "已经注册",
+				"regKey":   regKey,
+			}).Info("KeepOnline")
+			os.Exit(-1)
+		}
+
+		// 创建租约，这里可以做成配置
+		if leaseGrantResp, err = r.lease.Grant(context.TODO(), 3); err != nil {
+			//if leaseGrantResp, err = r.lease.Grant(context.TODO(), 20); err != nil {
 			goto RETRY
 		}
 
@@ -141,6 +138,8 @@ func (r *Register) KeepOnline() {
 		for {
 			select {
 			case keepAliveResp = <-keepAlive:
+				// 成功就后续执行
+				r.success = true
 				if keepAliveResp == nil {
 					goto RETRY
 				}

@@ -76,6 +76,7 @@ func (app *App) StartAndServe() {
 					log.WithFields(log.Fields{
 						"server": srv.name,
 					}).Logf(log.InfoLevel, "服务器[%s]异常退出", srv.name)
+					os.Exit(-1)
 				}
 			}
 		}()
