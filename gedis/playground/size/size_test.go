@@ -1,4 +1,4 @@
-package size
+package main
 
 import (
 	"reflect"
@@ -60,4 +60,32 @@ func TestRangeOfString(t *testing.T) {
 	for i := 0; i < len(str); i++ {
 		t.Logf("%c", str[i])
 	}
+}
+
+// TestSizeOfSlice
+// 原生切片 src/runtime/slice.go:15 slice
+// 反射包 src/reflect/value.go:2681 SliceHeader
+func TestSizeOfSlice(t *testing.T) {
+	slice := []int{1, 2, 3}
+	t.Log(slice)
+}
+
+// TestUnsafeMap 测试不安全的map
+// 预期：fatal error: concurrent map read and map write
+func TestUnsafeMap(t *testing.T) {
+	m := make(map[int]int)
+
+	go func() {
+		for {
+			_ = m[1]
+		}
+	}()
+
+	go func() {
+		for {
+			m[2] = 2
+		}
+	}()
+
+	select {}
 }
