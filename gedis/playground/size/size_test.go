@@ -19,7 +19,7 @@ func TestSizeOfNilStruct(t *testing.T) {
 	b := int(0)
 	c := Message{}
 	// src/runtime/malloc.go:778
-	// 所有空结构体都指向了zerobase, 但是里面有成员变量不是空结构体的就不是, 如果里面都是结构体那么就还是可以指向zerobase
+	// 所有空结构体指针都指向了zerobase, 但是里面有成员变量不是空结构体的就不是, 如果里面都是结构体那么就还是可以指向zerobase
 	// var zerobase uintptr
 	t.Log(unsafe.Sizeof(a))
 	t.Logf("%p\n", &a)
