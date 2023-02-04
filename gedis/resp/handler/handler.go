@@ -95,6 +95,9 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 			_ = clientConn.Write(unknownErrReplyBytes)
 		}
 	}
+
+	// close the connection
+	_ = conn.Close()
 }
 
 // Close stops handler

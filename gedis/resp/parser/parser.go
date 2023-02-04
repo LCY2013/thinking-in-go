@@ -75,6 +75,7 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error(string(debug.Stack()))
+			close(ch)
 		}
 	}()
 	bufReader := bufio.NewReader(reader)
