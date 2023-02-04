@@ -1,6 +1,10 @@
 package wait
 
 import (
+	"fmt"
+	"github.com/LCY2013/thinking-in-go/gedis/lib/logger"
+	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -39,5 +43,36 @@ func (w *Wait) WaitWithTimeout(timeout time.Duration) bool {
 		return false // completed normally
 	case <-time.After(timeout):
 		return true // timed out
+	}
+}
+
+// AsyncDo async do
+func (w *Wait) AsyncDo(f func()) {
+	w.wg.Add(1)
+	go func() {
+		defer w.wg.Done()
+		w.Try(f)
+	}()
+}
+
+// SyncDo sync do
+func (w *Wait) SyncDo(f func()) {
+	w.wg.Add(1)
+	defer w.wg.Done()
+	w.Try(f)
+}
+
+// Try executes f, catching any panic it might spawn. It is safe
+// to call from multiple goroutines simultaneously.
+func (w *Wait) Try(f func()) {
+	defer w.tryRecover()
+	f()
+}
+
+func (w *Wait) tryRecover() {
+	if val := recover(); val != nil {
+		var callers [64]uintptr
+		n := runtime.Callers(2, callers[:])
+		logger.Error(fmt.Sprintf("case: [%s], \ncallers: [%d], \nstack: [%s]", val, n, debug.Stack()))
 	}
 }
