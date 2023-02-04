@@ -36,7 +36,8 @@ type RespHandler struct {
 // MakeHandler creates a RespHandler instance
 func MakeHandler() *RespHandler {
 	return &RespHandler{
-		db: database.NewEchoDatabase(),
+		//db: database.NewEchoDatabase(),
+		db: database.NewDatabase(),
 	}
 }
 
@@ -83,7 +84,40 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 			logger.Error("empty payload")
 			continue
 		}
-		mbr, ok := payload.Data.(*reply.MultiBulkReply)
+
+		switch mbr := payload.Data.(type) {
+		case *reply.BulkReply:
+			result := r.db.Exec(clientConn, [][]byte{
+				mbr.Arg,
+			})
+			if result != nil {
+				_ = clientConn.Write(result.ToBytes())
+			} else {
+				_ = clientConn.Write(unknownErrReplyBytes)
+			}
+			continue
+		case *reply.StatusReply:
+			result := r.db.Exec(clientConn, [][]byte{
+				[]byte(mbr.Status),
+			})
+			if result != nil {
+				_ = clientConn.Write(result.ToBytes())
+			} else {
+				_ = clientConn.Write(unknownErrReplyBytes)
+			}
+			continue
+		case *reply.MultiBulkReply:
+			result := r.db.Exec(clientConn, mbr.Args)
+			if result != nil {
+				_ = clientConn.Write(result.ToBytes())
+			} else {
+				_ = clientConn.Write(unknownErrReplyBytes)
+			}
+			continue
+		}
+
+		_ = clientConn.Write(unknownErrReplyBytes)
+		/*mbr, ok := payload.Data.(*reply.MultiBulkReply)
 		if !ok {
 			logger.Error("require multi bulk reply")
 			continue
@@ -93,7 +127,7 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 			_ = clientConn.Write(result.ToBytes())
 		} else {
 			_ = clientConn.Write(unknownErrReplyBytes)
-		}
+		}*/
 	}
 
 	// close the connection
