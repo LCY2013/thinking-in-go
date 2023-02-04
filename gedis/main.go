@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/LCY2013/thinking-in-go/gedis/config"
 	"github.com/LCY2013/thinking-in-go/gedis/lib/logger"
+	"github.com/LCY2013/thinking-in-go/gedis/resp/handler"
 	"github.com/LCY2013/thinking-in-go/gedis/tcp"
 	"os"
 )
@@ -34,6 +35,29 @@ func main() {
 		config.Properties = defaultProperties
 	}
 
+	// echo server
+	//echoServer()
+
+	// redis server
+	redisServer()
+}
+
+// redisServer redis server
+func redisServer() {
+	err := tcp.ListenAndServeWithSignal(
+		&tcp.Config{
+			Address: fmt.Sprintf("%s:%d",
+				config.Properties.Bind,
+				config.Properties.Port),
+		},
+		handler.MakeHandler())
+	if err != nil {
+		logger.Error(err)
+	}
+}
+
+// echoServer echo server
+func echoServer() {
 	err := tcp.ListenAndServeWithSignal(
 		&tcp.Config{
 			Address: fmt.Sprintf("%s:%d",
