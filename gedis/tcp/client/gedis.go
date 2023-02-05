@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"github.com/LCY2013/thinking-in-go/gedis/interface/resp"

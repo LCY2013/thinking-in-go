@@ -8,16 +8,16 @@ import (
 	"strings"
 )
 
-// Database is a set of multiple database set
-type Database struct {
+// StandaloneDatabase is a set of multiple database set
+type StandaloneDatabase struct {
 	dbSet []*DB
 	// handle aof persistence
 	aofHandler *aof.AofHandler
 }
 
-// NewDatabase creates a redis database,
-func NewDatabase() *Database {
-	ndb := &Database{}
+// NewStandaloneDatabase creates a redis database,
+func NewStandaloneDatabase() *StandaloneDatabase {
+	ndb := &StandaloneDatabase{}
 	if config.Properties.Databases == 0 {
 		config.Properties.Databases = 16
 	}
@@ -51,7 +51,7 @@ func NewDatabase() *Database {
 
 // Exec executes command
 // parameter `cmdLine` contains command and its arguments, for example: "set key value"
-func (mdb *Database) Exec(c resp.Connection, cmdLine database.CmdLine) (result resp.Reply) {
+func (mdb *StandaloneDatabase) Exec(c resp.Connection, cmdLine database.CmdLine) (result resp.Reply) {
 	cmdName := strings.ToLower(string(cmdLine[0]))
 
 	// system command
@@ -67,9 +67,9 @@ func (mdb *Database) Exec(c resp.Connection, cmdLine database.CmdLine) (result r
 }
 
 // Close graceful shutdown database
-func (mdb *Database) Close() {
+func (mdb *StandaloneDatabase) Close() {
 
 }
 
-func (mdb *Database) AfterClientClose(c resp.Connection) {
+func (mdb *StandaloneDatabase) AfterClientClose(c resp.Connection) {
 }

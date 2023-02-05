@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func execSelect(c resp.Connection, mdb *Database, args database.CmdLine) resp.Reply {
+func execSelect(c resp.Connection, mdb *StandaloneDatabase, args database.CmdLine) resp.Reply {
 	if len(args) != 2 {
 		return reply.MakeArgNumErrReply("select")
 	}

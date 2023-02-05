@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"github.com/LCY2013/thinking-in-go/gedis/cluster"
+	"github.com/LCY2013/thinking-in-go/gedis/config"
 	"github.com/LCY2013/thinking-in-go/gedis/database"
 	databaseface "github.com/LCY2013/thinking-in-go/gedis/interface/database"
 	"github.com/LCY2013/thinking-in-go/gedis/lib/logger"
@@ -35,9 +37,15 @@ type RespHandler struct {
 
 // MakeHandler creates a RespHandler instance
 func MakeHandler() *RespHandler {
+	var db databaseface.Database // database interface
+	if config.Properties.Self != "" && len(config.Properties.Peers) > 0 {
+		db = cluster.NewClusterDatabase()
+	} else {
+		db = database.NewStandaloneDatabase()
+	}
 	return &RespHandler{
 		//db: database.NewEchoDatabase(),
-		db: database.NewDatabase(),
+		db: db,
 	}
 }
 
