@@ -40,8 +40,10 @@ func MakeHandler() *RespHandler {
 	var db databaseface.Database // database interface
 	if config.Properties.Self != "" && len(config.Properties.Peers) > 0 {
 		db = cluster.NewClusterDatabase()
+		logger.Info("cluster starting")
 	} else {
 		db = database.NewStandaloneDatabase()
+		logger.Info("standalone starting")
 	}
 	return &RespHandler{
 		//db: database.NewEchoDatabase(),

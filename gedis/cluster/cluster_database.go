@@ -42,17 +42,21 @@ func NewClusterDatabase() *ClusterDatabase {
 	}
 
 	// init peer connections
-	for _, peer := range config.Properties.Peers {
+	/*for _, peer := range config.Properties.Peers {
 		cluster.peerConn[peer] = pool.NewObjectPoolWithDefaultConfig(context.TODO(), &connectionFactory{
 			peer: peer,
 		})
-	}
+	}*/
 
 	nodes := make([]string, 0, len(config.Properties.Peers)+1)
 	for _, peer := range config.Properties.Peers {
 		if _, ok := cluster.peerConn[peer]; ok {
 			continue
 		}
+
+		cluster.peerConn[peer] = pool.NewObjectPoolWithDefaultConfig(context.TODO(), &connectionFactory{
+			peer: peer,
+		})
 		nodes = append(nodes, peer)
 	}
 	nodes = append(nodes, config.Properties.Self)
