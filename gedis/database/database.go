@@ -2,9 +2,8 @@ package database
 
 import (
 	"github.com/LCY2013/thinking-in-go/gedis/config"
+	"github.com/LCY2013/thinking-in-go/gedis/interface/database"
 	"github.com/LCY2013/thinking-in-go/gedis/interface/resp"
-	"github.com/LCY2013/thinking-in-go/gedis/resp/reply"
-	"strconv"
 	"strings"
 )
 
@@ -33,15 +32,16 @@ func NewDatabase() *Database {
 
 // Exec executes command
 // parameter `cmdLine` contains command and its arguments, for example: "set key value"
-func (mdb *Database) Exec(c resp.Connection, cmdLine [][]byte) (result resp.Reply) {
+func (mdb *Database) Exec(c resp.Connection, cmdLine database.CmdLine) (result resp.Reply) {
 	cmdName := strings.ToLower(string(cmdLine[0]))
-	if cmdName == "select" {
-		if len(cmdLine) != 2 {
-			return reply.MakeArgNumErrReply("select")
-		}
-		return execSelect(c, mdb, cmdLine[1:])
+
+	// system command
+	sysCmd, ok := cmdSysTable[cmdName]
+	if ok {
+		return sysCmd.executor(c, cmdLine)
 	}
-	// normal commands
+
+	// normal command
 	dbIndex := c.GetDBIndex()
 	selectedDB := mdb.dbSet[dbIndex]
 	return selectedDB.Exec(c, cmdLine)
@@ -53,16 +53,4 @@ func (mdb *Database) Close() {
 }
 
 func (mdb *Database) AfterClientClose(c resp.Connection) {
-}
-
-func execSelect(c resp.Connection, mdb *Database, args [][]byte) resp.Reply {
-	dbIndex, err := strconv.Atoi(string(args[0]))
-	if err != nil {
-		return reply.MakeErrReply("ERR invalid DB index")
-	}
-	if dbIndex >= len(mdb.dbSet) {
-		return reply.MakeErrReply("ERR DB index is out of range")
-	}
-	c.SelectDB(dbIndex)
-	return reply.MakeOkReply()
 }

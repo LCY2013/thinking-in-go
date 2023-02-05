@@ -18,10 +18,11 @@ type DB struct {
 
 // ExecFunc is interface for command executor
 // args don't include cmd line
-type ExecFunc func(db *DB, args CmdLine) resp.Reply
+type ExecFunc func(db *DB, args database.CmdLine) resp.Reply
 
-// CmdLine is alias for [][]byte, represents a command line
-type CmdLine [][]byte
+// ExecSysFunc is interface for command executor
+// args don't include cmd line
+type ExecSysFunc func(c resp.Connection, args database.CmdLine) resp.Reply
 
 // makeDB create DB instance
 func makeDB() *DB {
@@ -31,7 +32,7 @@ func makeDB() *DB {
 }
 
 // Exec executes command within one database
-func (db *DB) Exec(c resp.Connection, cmdLine CmdLine) resp.Reply {
+func (db *DB) Exec(c resp.Connection, cmdLine database.CmdLine) resp.Reply {
 	cmdName := strings.ToLower(string(cmdLine[0]))
 	cmd, ok := cmdTable[cmdName]
 	if !ok {
@@ -47,7 +48,7 @@ func (db *DB) Exec(c resp.Connection, cmdLine CmdLine) resp.Reply {
 	return fn(db, cmdLine[1:])
 }
 
-func validateArity(arity int, cmdArgs CmdLine) bool {
+func validateArity(arity int, cmdArgs database.CmdLine) bool {
 	if arity >= 0 {
 		return arity == len(cmdArgs)
 	}

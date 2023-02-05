@@ -19,7 +19,7 @@ func (db *DB) getAsString(key string) ([]byte, reply.ErrorReply) {
 }
 
 // execGet returns string value bound to the given key
-func execGet(db *DB, args CmdLine) resp.Reply {
+func execGet(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	bytes, err := db.getAsString(key)
 	if err != nil {
@@ -32,7 +32,7 @@ func execGet(db *DB, args CmdLine) resp.Reply {
 }
 
 // execSet sets string value and time to live to the given key
-func execSet(db *DB, args CmdLine) resp.Reply {
+func execSet(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	value := args[1]
 	entity := &database.DataEntity{
@@ -43,7 +43,7 @@ func execSet(db *DB, args CmdLine) resp.Reply {
 }
 
 // execSetNX sets string if not exists
-func execSetNX(db *DB, args CmdLine) resp.Reply {
+func execSetNX(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	value := args[1]
 	entity := &database.DataEntity{
@@ -54,7 +54,7 @@ func execSetNX(db *DB, args CmdLine) resp.Reply {
 }
 
 // execGetSet sets value of a string-type key and returns its old value
-func execGetSet(db *DB, args CmdLine) resp.Reply {
+func execGetSet(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	value := args[1]
 
@@ -68,7 +68,7 @@ func execGetSet(db *DB, args CmdLine) resp.Reply {
 }
 
 // execStrLen returns len of string value bound to the given key
-func execStrLen(db *DB, args CmdLine) resp.Reply {
+func execStrLen(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	entity, exists := db.GetEntity(key)
 	if !exists {

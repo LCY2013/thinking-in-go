@@ -6,4 +6,7 @@ type Connection interface {
 	// GetDBIndex used for multi database
 	GetDBIndex() int
 	SelectDB(int)
+	// SetPassword password
+	SetPassword(password string)
+	GetPassword() string
 }

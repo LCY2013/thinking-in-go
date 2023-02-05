@@ -1,13 +1,14 @@
 package database
 
 import (
+	"github.com/LCY2013/thinking-in-go/gedis/interface/database"
 	"github.com/LCY2013/thinking-in-go/gedis/interface/resp"
 	"github.com/LCY2013/thinking-in-go/gedis/lib/wildcard"
 	"github.com/LCY2013/thinking-in-go/gedis/resp/reply"
 )
 
 // execDel removes a key from db
-func execDel(db *DB, args CmdLine) resp.Reply {
+func execDel(db *DB, args database.CmdLine) resp.Reply {
 	keys := make([]string, len(args))
 	for i, v := range args {
 		keys[i] = string(v)
@@ -18,7 +19,7 @@ func execDel(db *DB, args CmdLine) resp.Reply {
 }
 
 // execExists checks if a is existed in db
-func execExists(db *DB, args CmdLine) resp.Reply {
+func execExists(db *DB, args database.CmdLine) resp.Reply {
 	result := int64(0)
 	for _, arg := range args {
 		key := string(arg)
@@ -31,13 +32,13 @@ func execExists(db *DB, args CmdLine) resp.Reply {
 }
 
 // execFlushDB removes all data in current db
-func execFlushDB(db *DB, args CmdLine) resp.Reply {
+func execFlushDB(db *DB, args database.CmdLine) resp.Reply {
 	db.Flush()
 	return &reply.OkReply{}
 }
 
 // execType returns the type of entity, including: string, list, hash, set and zset
-func execType(db *DB, args CmdLine) resp.Reply {
+func execType(db *DB, args database.CmdLine) resp.Reply {
 	key := string(args[0])
 	entity, exists := db.GetEntity(key)
 	if !exists {
@@ -51,7 +52,7 @@ func execType(db *DB, args CmdLine) resp.Reply {
 }
 
 // execRename a key
-func execRename(db *DB, args CmdLine) resp.Reply {
+func execRename(db *DB, args database.CmdLine) resp.Reply {
 	if len(args) != 2 {
 		return reply.MakeErrReply("ERR wrong number of arguments for 'rename' command")
 	}
@@ -68,7 +69,7 @@ func execRename(db *DB, args CmdLine) resp.Reply {
 }
 
 // execRenameNx a key, only if the new key does not exist
-func execRenameNx(db *DB, args CmdLine) resp.Reply {
+func execRenameNx(db *DB, args database.CmdLine) resp.Reply {
 	src := string(args[0])
 	dest := string(args[1])
 
@@ -87,9 +88,9 @@ func execRenameNx(db *DB, args CmdLine) resp.Reply {
 }
 
 // execKeys returns all keys matching the given pattern
-func execKeys(db *DB, args CmdLine) resp.Reply {
+func execKeys(db *DB, args database.CmdLine) resp.Reply {
 	pattern := wildcard.CompilePattern(string(args[0]))
-	result := make(CmdLine, 0)
+	result := make(database.CmdLine, 0)
 	db.data.ForEach(func(key string, val interface{}) bool {
 		if pattern.IsMatch(key) {
 			result = append(result, []byte(key))

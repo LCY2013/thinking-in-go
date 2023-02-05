@@ -16,6 +16,8 @@ type Connection struct {
 	mu sync.Mutex
 	// select db
 	selectDB int
+	// password
+	password string
 }
 
 func NewConn(conn net.Conn) *Connection {
@@ -60,4 +62,12 @@ func (c *Connection) GetDBIndex() int {
 
 func (c *Connection) SelectDB(db int) {
 	c.selectDB = db
+}
+
+func (c *Connection) SetPassword(password string) {
+	c.password = password
+}
+
+func (c *Connection) GetPassword() string {
+	return c.password
 }
