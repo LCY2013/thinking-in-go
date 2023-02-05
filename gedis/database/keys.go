@@ -3,6 +3,7 @@ package database
 import (
 	"github.com/LCY2013/thinking-in-go/gedis/interface/database"
 	"github.com/LCY2013/thinking-in-go/gedis/interface/resp"
+	"github.com/LCY2013/thinking-in-go/gedis/lib/utils"
 	"github.com/LCY2013/thinking-in-go/gedis/lib/wildcard"
 	"github.com/LCY2013/thinking-in-go/gedis/resp/reply"
 )
@@ -15,6 +16,12 @@ func execDel(db *DB, args database.CmdLine) resp.Reply {
 	}
 
 	deleted := db.Removes(keys...)
+
+	// aof handler
+	if deleted > 0 {
+		db.addAof(utils.ToMergeCmdLine("del", args...))
+	}
+
 	return reply.MakeIntReply(int64(deleted))
 }
 
@@ -34,6 +41,9 @@ func execExists(db *DB, args database.CmdLine) resp.Reply {
 // execFlushDB removes all data in current db
 func execFlushDB(db *DB, args database.CmdLine) resp.Reply {
 	db.Flush()
+
+	db.addAof(utils.ToMergeCmdLine("flushdb", args...))
+
 	return &reply.OkReply{}
 }
 
@@ -47,6 +57,14 @@ func execType(db *DB, args database.CmdLine) resp.Reply {
 	switch entity.Data.(type) {
 	case []byte:
 		return reply.MakeStatusReply("string")
+		//case *list.LinkedList:
+		//    return reply.MakeStatusReply("list")
+		//case dict.Dict:
+		//    return reply.MakeStatusReply("hash")
+		//case *set.Set:
+		//    return reply.MakeStatusReply("set")
+		//case *sortedset.SortedSet:
+		//    return reply.MakeStatusReply("zset")
 	}
 	return &reply.UnknownErrReply{}
 }
@@ -65,6 +83,9 @@ func execRename(db *DB, args database.CmdLine) resp.Reply {
 	}
 	db.PutEntity(dest, entity)
 	db.Remove(src)
+
+	db.addAof(utils.ToMergeCmdLine("rename", args...))
+
 	return &reply.OkReply{}
 }
 
@@ -84,6 +105,9 @@ func execRenameNx(db *DB, args database.CmdLine) resp.Reply {
 	}
 	db.Removes(src, dest) // clean src and dest with their ttl
 	db.PutEntity(dest, entity)
+
+	db.addAof(utils.ToMergeCmdLine("renamenx", args...))
+
 	return reply.MakeIntReply(1)
 }
 

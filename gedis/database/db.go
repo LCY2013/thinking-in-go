@@ -13,7 +13,8 @@ import (
 type DB struct {
 	index int
 	// key -> DataEntity
-	data dict.Dict
+	data   dict.Dict
+	addAof func(database.CmdLine)
 }
 
 // ExecFunc is interface for command executor
@@ -27,7 +28,8 @@ type ExecSysFunc func(c resp.Connection, args database.CmdLine) resp.Reply
 // makeDB create DB instance
 func makeDB() *DB {
 	return &DB{
-		data: dict.MakeConcurrent(128),
+		data:   dict.MakeConcurrent(128),
+		addAof: func(line database.CmdLine) {},
 	}
 }
 
@@ -105,5 +107,4 @@ func (db *DB) Removes(keys ...string) (deleted int) {
 // Flush clean database
 func (db *DB) Flush() {
 	db.data.Clear()
-
 }

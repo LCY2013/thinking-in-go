@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/LCY2013/thinking-in-go/gedis/aof"
 	"github.com/LCY2013/thinking-in-go/gedis/config"
 	"github.com/LCY2013/thinking-in-go/gedis/interface/database"
 	"github.com/LCY2013/thinking-in-go/gedis/interface/resp"
@@ -10,6 +11,8 @@ import (
 // Database is a set of multiple database set
 type Database struct {
 	dbSet []*DB
+	// handle aof persistence
+	aofHandler *aof.AofHandler
 }
 
 // NewDatabase creates a redis database,
@@ -25,6 +28,22 @@ func NewDatabase() *Database {
 		singleDB := makeDB()
 		singleDB.index = idx
 		ndb.dbSet[idx] = singleDB
+	}
+
+	// init aof append
+	if config.Properties.AppendOnly {
+		handler, err := aof.NewAOFHandler(ndb)
+		if err != nil {
+			panic(err)
+		}
+		ndb.aofHandler = handler
+		for _, db := range ndb.dbSet {
+			// avoid closure
+			singleDB := db
+			singleDB.addAof = func(line database.CmdLine) {
+				ndb.aofHandler.AddAof(singleDB.index, line)
+			}
+		}
 	}
 
 	return ndb
