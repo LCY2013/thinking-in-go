@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package go.micr.service.helloworld;
+option go_package="gen/helloworld";
+
+service HelloWorld {
+  rpc SayHello(SayRequest) returns (SayResponse) {}
+}
+
+message SayRequest {
+  string message = 1;
+}
+
+message SayResponse {
+  string answer = 1;
+}
+
