@@ -1,4 +1,4 @@
-module github.com/LCY2013/thinking-in-go/micro-with-containerization/user
+module user
 
 go 1.18
 
