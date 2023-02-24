@@ -14,7 +14,7 @@ import (
 func main() {
 	// Create service
 	srv := micro.NewService(
-		micro.Name("user.service"),
+		micro.Name("go.micro.service.user"),
 		micro.Version("1.0"),
 	)
 

@@ -31,7 +31,7 @@ func main() {
 
 	// Create service
 	srv := micro.NewService(
-		micro.Name("category"),
+		micro.Name("go.micro.service.category"),
 		micro.Version("1.0"),
 		// 这里设置地址和余姚暴露的端口
 		micro.Address("127.0.0.1:8082"),
@@ -62,6 +62,8 @@ func main() {
 	}(db)
 	// 禁止复表
 	db.SingularTable(true)
+
+	repository.NewCategoryRepository(db).InitTable()
 
 	// 初始化数据服务
 	categoryDataService := service.NewCategoryDataService(repository.NewCategoryRepository(db))
