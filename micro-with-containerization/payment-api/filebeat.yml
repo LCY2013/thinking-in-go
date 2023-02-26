@@ -1,0 +1,11 @@
+filebeat.inputs:
+  - type: log
+    # Change to true to enable this input configuration.
+    #  enabled: false
+    enabled: true
+    # Paths that should be crawled and fetched. Glob based paths.
+    paths:
+      - /datalog/*.log
+
+output.logstash:
+  hosts: ["192.168.0.57:5044"]
