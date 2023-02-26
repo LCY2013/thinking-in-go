@@ -2,10 +2,18 @@
 version: "3"
 services:
   # 服务名称，并且这个服务名称能够在同一个网络进行访问
+  # -e CONSUL_DATA_DIR='/consul/data' -e CONSUL_CONFIG_DIR='/consul/config'\
+  #  -v ~/db/consul/conf/:/consul/conf/ -v ~/db/consul/data/:/consul/data/
   consul-micro:
     image: consul
     ports:
       - "8500:8500"
+    environment:
+      - CONSUL_DATA_DIR=/consul/data
+      - CONSUL_CONFIG_DIR=/consul/config
+    volumes:
+      - "./tempdata/db/consul/conf/:/consul/conf/"
+      - "./tempdata/db/consul/data/:/consul/data/"
   # 链路追踪
   jaeger-micro:
     image: jaegertracing/all-in-one
@@ -25,4 +33,59 @@ services:
     image: mlabouardy/hystrix-dashboard
     ports:
       - "9002:9002"
+  # 监控
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    user: root
+    #    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./tempdata/prometheus/conf/prometheus:/etc/prometheus
+      - ./tempdata/prometheus/data/prometheus/prometheus_db:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+#    networks:
+#      - net-prometheus
 
+  # admin/admin
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    user: root
+    #    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      #- ./tempdata/prometheus/conf/grafana:/etc/grafana
+      - ./tempdata/prometheus/data/prometheus/grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+#    networks:
+#      - net-prometheus
+
+  pushgateway:
+    image: prom/pushgateway
+    container_name: pushgateway
+    user: root
+    #    restart: always
+    ports:
+      - "9091:9091"
+    volumes:
+      - ./tempdata/prometheus/data/prometheus/pushgateway_data:/var/lib/pushgateway
+
+  alertmanager:
+    image: prom/alertmanager
+    hostname: alertmanager
+    container_name: alertmanager
+    user: root
+    #    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./tempdata/prometheus/conf/alertmanager:/etc/alertmanager
+      - ./tempdata/prometheus/data/prometheus/alertmanager_data:/var/lib/alertmanager

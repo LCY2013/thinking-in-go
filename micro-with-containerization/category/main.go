@@ -63,7 +63,7 @@ func main() {
 	// 禁止复表
 	db.SingularTable(true)
 
-	repository.NewCategoryRepository(db).InitTable()
+	//repository.NewCategoryRepository(db).InitTable()
 
 	// 初始化数据服务
 	categoryDataService := service.NewCategoryDataService(repository.NewCategoryRepository(db))

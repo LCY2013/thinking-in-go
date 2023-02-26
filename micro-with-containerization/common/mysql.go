@@ -5,6 +5,16 @@ import (
 	"go-micro.dev/v4/config"
 )
 
+/*
+{
+  "host": "127.0.0.1",
+  "user": "root",
+  "pwd": "123456",
+  "database": "micro",
+  "port": 3306
+}
+*/
+
 type MysqlConfig struct {
 	Host     string `json:"host"`
 	User     string `json:"user"`
