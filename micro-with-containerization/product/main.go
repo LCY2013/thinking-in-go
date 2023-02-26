@@ -51,7 +51,7 @@ func main() {
 		micro.Name("go.micro.service.product"),
 		micro.Version("1.0"),
 		// 这里设置地址和余姚暴露的端口
-		micro.Address("127.0.0.1:8082"),
+		micro.Address("127.0.0.1:8084"),
 		// 添加consul作为注册中心
 		micro.Registry(consulRegistry),
 		// 绑定链路追踪

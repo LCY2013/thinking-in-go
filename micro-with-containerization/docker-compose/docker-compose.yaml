@@ -1,0 +1,28 @@
+# 版本号
+version: "3"
+services:
+  # 服务名称，并且这个服务名称能够在同一个网络进行访问
+  consul-micro:
+    image: consul
+    ports:
+      - "8500:8500"
+  # 链路追踪
+  jaeger-micro:
+    image: jaegertracing/all-in-one
+    ports:
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+      - "14250:14250"
+      - "14268:14268"
+      - "14269:14269"
+      - "9411:9411"
+  # 熔断器
+  hystrix-dashboard:
+    image: mlabouardy/hystrix-dashboard
+    ports:
+      - "9002:9002"
+
