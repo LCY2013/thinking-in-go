@@ -1,0 +1,68 @@
+version: '3.3'
+services:
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    container_name: elasticsearch
+    privileged: true
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "ELASTIC_PASSWORD=elastic"
+      - "TAKE_FILE_OWNERSHIP=true"
+      - "network.publish_host=_eth0_"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./tempdata/conf/elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yaml
+      - ./tempdata/data/elasticsearch:/usr/share/elasticsearch/data
+      - ./tempdata/log/elasticsearch:/usr/share/elasticsearch/logs
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+
+  logstash:
+    image: logstash:8.6.2
+    container_name: logstash
+    privileged: true
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "9600:9600"
+    volumes:
+      - ./tempdata/conf/logstash.yaml:/usr/share/logstash/config/logstash.yaml
+      - ./tempdata/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    environment:
+      LS_JAVA_OPTS: "-Xmx1g -Xms1g"
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: kibana:8.6.2
+    container_name: kibana
+    environment:
+      SERVER_HOST: 0.0.0.0
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./tempdata/conf/kibana.yaml:/usr/share/kibana/config/kibana.yaml
+    depends_on:
+      - elasticsearch
+
+#  filebeat:
+#    image: elastic/filebeat:8.6.2
+#    container_name: filebeat
+#    command: filebeat -e -strict.perms=false
+#    user: root
+#    privileged: true
+#    volumes:
+#      - ./tempdata/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+#      - ./tempdata/log/filebeat:/usr/share/filebeat/logs
+#      - ./tempdata/data/filebeat:/usr/share/filebeat/data
+#      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    depends_on:
+#      - kibana
