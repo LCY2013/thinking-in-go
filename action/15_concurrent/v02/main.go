@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"runtime"
-	"time"
 )
 
 /*
@@ -252,8 +251,15 @@ P 在 G-P-M 模型中占据核心地位，它拥有待调度的 G 的队列，�
 
 */
 
-func deadloop() {
+func yield() {
+
+}
+
+func deadLoop() {
 	for {
+		//time.Sleep(time.Millisecond * 500)
+		yield()
+		fmt.Println("dead loop!")
 	}
 }
 
@@ -263,9 +269,10 @@ func getGOMAXPROCS() int {
 }
 
 func main() {
-	go deadloop()
+	go deadLoop()
 	for {
-		time.Sleep(time.Second * 1)
+		yield()
+		//time.Sleep(time.Second * 1)
 		fmt.Println("I got scheduled!")
 	}
 }

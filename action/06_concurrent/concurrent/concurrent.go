@@ -151,7 +151,7 @@ func getNumberChannel() int {
 	return i
 }
 
-func main() {
-	//fmt.Println(getNumber())
-	problemSolving()
-}
+//func main() {
+//	//fmt.Println(getNumber())
+//	problemSolving()
+//}

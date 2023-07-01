@@ -242,3 +242,8 @@ Go的运行时并不具备操作系统内核级的硬件中断能力，基于工
 https://changkun.de/golang/zh-cn/part2runtime/ch06sched/
 
 */
+
+func main() {
+	i := -1
+	fmt.Println(uint64(i) << 32)
+}
