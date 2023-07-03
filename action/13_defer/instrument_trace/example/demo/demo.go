@@ -1,7 +1,5 @@
 package main
 
-import "golang.org/x/net/trace"
-
 // 利用 instrument 工具注入跟踪代码
 // 有了 instrument 工具后，再来看看如何使用这个工具，在目标 Go 源文件中自动注入跟踪设施。
 /*
@@ -13,15 +11,15 @@ instrument [-w] xxx.go
   -w  write result to (source) file instead of stdout
 */
 func foo() {
-	defer trace.Trace()()
+	//defer trace.Trace()()
 	bar()
 }
 
 func bar() {
-	defer trace.Trace()()
+	//defer trace.Trace()()
 }
 
 func main() {
-	defer trace.Trace()()
+	//defer trace.Trace()()
 	foo()
 }
