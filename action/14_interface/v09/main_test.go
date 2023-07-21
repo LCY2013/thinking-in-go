@@ -18,6 +18,10 @@ type FileSave struct {
 
 func (FileSave) Save(writer io.Writer, data []byte) error {
 	fmt.Printf("%s", string(data))
+	_, err := writer.Write(data)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
