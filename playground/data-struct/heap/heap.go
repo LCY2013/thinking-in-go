@@ -109,6 +109,46 @@ func NewMinTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
 	return heap
 }
 
+// NewMaxHeap returns a new max heap.
+func NewMaxHeap[T any](initData []T, options ...HeapOption[T]) *Heap[T] {
+	heap := &Heap[T]{
+		data:      initData,
+		size:      len(initData),
+		hType:     MaxHeap,
+		unlimited: UnlimitedSize,
+	}
+	for _, option := range options {
+		option(heap)
+	}
+
+	// build heap start from the last parent node
+	for i := heap.parent(heap.size - 1); i >= 0; i-- {
+		heap.shuffleDown(i)
+	}
+
+	return heap
+}
+
+// NewMinHeap returns a new min heap.
+func NewMinHeap[T any](initData []T, options ...HeapOption[T]) *Heap[T] {
+	heap := &Heap[T]{
+		data:      initData,
+		size:      len(initData),
+		hType:     MinHeap,
+		unlimited: UnlimitedSize,
+	}
+	for _, option := range options {
+		option(heap)
+	}
+
+	// build heap start from the last parent node
+	for i := heap.parent(heap.size - 1); i >= 0; i-- {
+		heap.shuffleDown(i)
+	}
+
+	return heap
+}
+
 // IsEmpty returns true if the heap is empty.
 func (h *Heap[T]) IsEmpty() bool {
 	return h.size == 0
@@ -607,11 +647,48 @@ func (h *Heap[T]) arrToTree() *TreeNode {
 }
 
 func main() {
+	// 大堆
 	//maxTopHeapCase()
+	// 小堆
 	//minTopHeapCase()
+	// topk堆
 	//topKCase()
-	complexTypeTopMaxKCase()
-	complexTypeTopMinKCase()
+	//complexTypeTopMaxKCase()
+	//complexTypeTopMinKCase()
+	// 构建大堆
+	//buildMaxHeapCase()
+	// 构建小堆
+	buildMinHeapCase()
+}
+
+func buildMinHeapCase() {
+	heap := NewMinHeap[int]([]int{9, 8, 6, 6, 7, 5, 2, 1, 4, 3, 6, 2})
+	heap.printHeap()
+	for heap.Size() > 0 {
+		fmt.Printf("%v ,", heap.Pop())
+	}
+	fmt.Println()
+	heap = NewMinHeap[int]([]int{8, 9, 7, 6, 6, 2, 5, 4, 1, 2, 6, 3})
+	heap.printHeap()
+	for heap.Size() > 0 {
+		fmt.Printf("%v ,", heap.Pop())
+	}
+	fmt.Println()
+}
+
+func buildMaxHeapCase() {
+	heap := NewMaxHeap[int]([]int{9, 8, 6, 6, 7, 5, 2, 1, 4, 3, 6, 2})
+	heap.printHeap()
+	for heap.Size() > 0 {
+		fmt.Printf("%v ,", heap.Pop())
+	}
+	fmt.Println()
+	heap = NewMaxHeap[int]([]int{8, 9, 7, 6, 6, 2, 5, 4, 1, 2, 6, 3})
+	heap.printHeap()
+	for heap.Size() > 0 {
+		fmt.Printf("%v ,", heap.Pop())
+	}
+	fmt.Println()
 }
 
 type ComplexTypeMaxTopK struct {
