@@ -192,7 +192,7 @@ func (h *Heap[T]) TopK(v T) T {
 			panic("top value not support compare")
 			return top
 		}
-		if vv != nil && tv != nil && tv.Compare(vv) {
+		if vv.Compare(tv) {
 			h.Pop()
 			h.Push(v)
 		}
@@ -221,7 +221,7 @@ func (h *Heap[T]) shuffleUp(idx int) {
 	if idx == 0 {
 		return
 	}
-	for {
+	for idx > 0 {
 		// find parent index
 		p := h.parent(idx)
 		if p == idx {
@@ -471,9 +471,9 @@ func (h *Heap[T]) PrintArray() {
 	fmt.Printf("[")
 	if h != nil && h.size != 0 {
 		for i := 0; i < h.size-1; i++ {
-			fmt.Printf("%d, ", h.data[i])
+			fmt.Printf("%v, ", h.data[i])
 		}
-		fmt.Printf("%d", h.data[h.size-1])
+		fmt.Printf("%v", h.data[h.size-1])
 	}
 	fmt.Printf("]")
 }
@@ -520,7 +520,7 @@ func printTreeHelper(node *TreeNode, prev *Trunk, isLeft bool) {
 		prev.Str = prevStr
 	}
 	showTrunks(trunk)
-	fmt.Printf("%d\n", node.Val)
+	fmt.Printf("%v\n", node.Val)
 
 	if prev != nil {
 		prev.Str = prevStr
@@ -571,7 +571,49 @@ func (h *Heap[T]) arrToTree() *TreeNode {
 func main() {
 	//maxTopHeapCase()
 	//minTopHeapCase()
-	topKCase()
+	//topKCase()
+	complexTypeCase()
+}
+
+type ComplexType struct {
+	id   int
+	name string
+}
+
+func (c *ComplexType) Compare(t any) bool {
+	switch ct := t.(type) {
+	case *ComplexType:
+		return c.id > ct.id
+	case ComplexType:
+		return c.id > ct.id
+	default:
+		return false
+	}
+}
+
+func (c *ComplexType) String() string {
+	return fmt.Sprintf("id: %d, name: %s", c.id, c.name)
+}
+
+func complexTypeCase() {
+	heap := NewTopMaxK[*ComplexType](3)
+	/* 初始化堆 */
+	// 初始化大顶堆
+	top := heap.TopK(&ComplexType{1, "1"})
+	fmt.Printf("\ntopk堆顶元素 1 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexType{2, "2"})
+	fmt.Printf("\ntopk堆顶元素 2 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexType{3, "3"})
+	fmt.Printf("\ntopk堆顶元素 4 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexType{5, "5"})
+	fmt.Printf("\ntopk堆顶元素 5 入堆后，返回：%v\n", top)
+	heap.printHeap()
 }
 
 func topKCase() {
