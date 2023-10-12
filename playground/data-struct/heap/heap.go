@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -13,7 +14,7 @@ const (
 )
 
 const (
-	UnlimitedSize = -1
+	UnlimitedSize = true
 )
 
 // Heap is a binary tree with the following properties:
@@ -26,6 +27,7 @@ type Heap[T any] struct {
 	data         []T
 	size         int
 	maxSize      int
+	unlimited    bool
 	hType        heapType
 	defaultValue T
 }
@@ -35,6 +37,7 @@ type HeapOption[T any] func(*Heap[T])
 func WithMaxSize[T any](maxSize int) HeapOption[T] {
 	return func(h *Heap[T]) {
 		h.maxSize = maxSize
+		h.unlimited = false
 	}
 }
 
@@ -61,10 +64,10 @@ func NewTopMinK[T any](size int) *Heap[T] {
 // NewHeap default returns a new max top heap.
 func NewHeap[T any](options ...HeapOption[T]) *Heap[T] {
 	heap := &Heap[T]{
-		data:    make([]T, 0, 10),
-		size:    0,
-		hType:   MaxHeap,
-		maxSize: UnlimitedSize,
+		data:      make([]T, 0, 10),
+		size:      0,
+		hType:     MaxHeap,
+		unlimited: UnlimitedSize,
 	}
 
 	for _, option := range options {
@@ -77,10 +80,10 @@ func NewHeap[T any](options ...HeapOption[T]) *Heap[T] {
 // NewMaxTopHeap returns a new max top heap.
 func NewMaxTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
 	heap := &Heap[T]{
-		data:    make([]T, 0, 10),
-		size:    0,
-		hType:   MaxHeap,
-		maxSize: UnlimitedSize,
+		data:      make([]T, 0, 10),
+		size:      0,
+		hType:     MaxHeap,
+		unlimited: UnlimitedSize,
 	}
 
 	for _, option := range options {
@@ -93,10 +96,10 @@ func NewMaxTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
 // NewMinTopHeap returns a new min top heap.
 func NewMinTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
 	heap := &Heap[T]{
-		data:    make([]T, 0, 10),
-		size:    0,
-		hType:   MinHeap,
-		maxSize: UnlimitedSize,
+		data:      make([]T, 0, 10),
+		size:      0,
+		hType:     MinHeap,
+		unlimited: UnlimitedSize,
 	}
 
 	for _, option := range options {
@@ -149,7 +152,7 @@ func (h *Heap[T]) Peek() T {
 // if the heap size is equal to maxSize, push the value to the heap and return the top value.
 func (h *Heap[T]) TopK(v T) T {
 	// unlimited size
-	if h.maxSize == UnlimitedSize {
+	if h.unlimited {
 		h.Push(v)
 		return h.Peek()
 	}
@@ -183,16 +186,26 @@ func (h *Heap[T]) TopK(v T) T {
 			h.Push(v)
 		}
 	default:
-		tv, ok := any(top).(interface{ Compare(t any) bool })
-		if !ok {
-			panic("top value not support compare")
+		var tv, vv interface{ Compare(t any) bool }
+		reflectTop := reflect.ValueOf(top)
+		if reflectTop.Kind() == reflect.Struct {
+			tv = any(&top).(interface{ Compare(t any) bool })
+		} else {
+			tv = any(top).(interface{ Compare(t any) bool })
 		}
-		vv, ok := any(v).(interface{ Compare(t any) bool })
-		if !ok {
-			panic("top value not support compare")
+
+		reflectV := reflect.ValueOf(v)
+		if reflectV.Kind() == reflect.Struct {
+			vv = any(&v).(interface{ Compare(t any) bool })
+		} else {
+			vv = any(v).(interface{ Compare(t any) bool })
+		}
+
+		if tv == nil || vv == nil {
 			return top
 		}
-		if vv.Compare(tv) {
+
+		if !vv.Compare(tv) {
 			h.Pop()
 			h.Push(v)
 		}
@@ -203,7 +216,7 @@ func (h *Heap[T]) TopK(v T) T {
 
 // Push adds a new value to the heap.
 func (h *Heap[T]) Push(v T) {
-	if h.maxSize != UnlimitedSize && h.size >= h.maxSize {
+	if !h.unlimited && h.size >= h.maxSize {
 		return
 	}
 	if h.size == len(h.data) {
@@ -278,12 +291,19 @@ func (h *Heap[T]) shuffleUp(idx int) {
 			}
 			return
 		default:
-			cV, ok := any(h.data[idx]).(interface{ Compare(t any) bool })
-			if !ok {
+			var cv interface{ Compare(t any) bool }
+			if reflect.ValueOf(h.data[idx]).Kind() == reflect.Struct {
+				cv = any(&h.data[idx]).(interface{ Compare(t any) bool })
+			} else {
+				cv = any(h.data[idx]).(interface{ Compare(t any) bool })
+			}
+
+			if cv == nil {
 				return
 			}
+
 			// custom compare
-			if cV.Compare(h.data[p]) {
+			if cv.Compare(h.data[p]) {
 				h.Swap(p, idx)
 				idx = p
 			}
@@ -434,14 +454,28 @@ func (h *Heap[T]) shuffleDown(idx int) {
 				idx = curIdx
 			}
 		default:
-			var lv, rv interface{ Compare(t any) bool }
+			var lv, rv, pv interface{ Compare(t any) bool }
 			if lIdx < h.size {
-				lv = any(h.data[lIdx]).(interface{ Compare(t any) bool })
+				if reflect.ValueOf(h.data[lIdx]).Kind() == reflect.Ptr {
+					lv = any(h.data[lIdx]).(interface{ Compare(t any) bool })
+				} else {
+					lv = any(&h.data[lIdx]).(interface{ Compare(t any) bool })
+				}
 			}
 			if rIdx < h.size {
-				rv = any(h.data[rIdx]).(interface{ Compare(t any) bool })
+				if reflect.ValueOf(h.data[rIdx]).Kind() == reflect.Ptr {
+					rv = any(h.data[rIdx]).(interface{ Compare(t any) bool })
+				} else {
+					rv = any(&h.data[rIdx]).(interface{ Compare(t any) bool })
+				}
 			}
-			pv := any(h.data[curIdx]).(interface{ Compare(t any) bool })
+
+			if reflect.ValueOf(h.data[curIdx]).Kind() == reflect.Ptr {
+				pv = any(h.data[curIdx]).(interface{ Compare(t any) bool })
+			} else {
+				pv = any(&h.data[curIdx]).(interface{ Compare(t any) bool })
+			}
+
 			if lv == nil && rv == nil {
 				return
 			}
@@ -451,7 +485,11 @@ func (h *Heap[T]) shuffleDown(idx int) {
 				curIdx = lIdx
 			}
 
-			pv = any(h.data[curIdx]).(interface{ Compare(t any) bool })
+			if reflect.ValueOf(h.data[curIdx]).Kind() == reflect.Ptr {
+				pv = any(h.data[curIdx]).(interface{ Compare(t any) bool })
+			} else {
+				pv = any(&h.data[curIdx]).(interface{ Compare(t any) bool })
+			}
 			if rv != nil && rv.Compare(pv) {
 				curIdx = rIdx
 			}
@@ -572,47 +610,93 @@ func main() {
 	//maxTopHeapCase()
 	//minTopHeapCase()
 	//topKCase()
-	complexTypeCase()
+	complexTypeTopMaxKCase()
+	complexTypeTopMinKCase()
 }
 
-type ComplexType struct {
+type ComplexTypeMaxTopK struct {
 	id   int
 	name string
 }
 
-func (c *ComplexType) Compare(t any) bool {
+func (c *ComplexTypeMaxTopK) Compare(t any) bool {
 	switch ct := t.(type) {
-	case *ComplexType:
+	case *ComplexTypeMaxTopK:
+		return c.id < ct.id
+	case ComplexTypeMaxTopK:
+		return c.id < ct.id
+	default:
+		return false
+	}
+}
+
+func (c *ComplexTypeMaxTopK) String() string {
+	return fmt.Sprintf("%d,%s", c.id, c.name)
+}
+
+type ComplexTypeMinTopK struct {
+	id   int
+	name string
+}
+
+func (c *ComplexTypeMinTopK) Compare(t any) bool {
+	switch ct := t.(type) {
+	case *ComplexTypeMinTopK:
 		return c.id > ct.id
-	case ComplexType:
+	case ComplexTypeMinTopK:
 		return c.id > ct.id
 	default:
 		return false
 	}
 }
 
-func (c *ComplexType) String() string {
-	return fmt.Sprintf("id: %d, name: %s", c.id, c.name)
+func (c *ComplexTypeMinTopK) String() string {
+	return fmt.Sprintf("%d,%s", c.id, c.name)
 }
 
-func complexTypeCase() {
-	heap := NewTopMaxK[*ComplexType](3)
+func complexTypeTopMinKCase() {
+	heap := NewTopMinK[ComplexTypeMinTopK](3)
 	/* 初始化堆 */
 	// 初始化大顶堆
-	top := heap.TopK(&ComplexType{1, "1"})
-	fmt.Printf("\ntopk堆顶元素 1 入堆后，返回：%v\n", top)
+	top := heap.TopK(ComplexTypeMinTopK{1, "1"})
+	fmt.Printf("\n最小topk堆顶元素 1 入堆后，返回：%v\n", top)
 	heap.printHeap()
 
-	top = heap.TopK(&ComplexType{2, "2"})
-	fmt.Printf("\ntopk堆顶元素 2 入堆后，返回：%v\n", top)
+	top = heap.TopK(ComplexTypeMinTopK{2, "2"})
+	fmt.Printf("\n最小topk堆顶元素 2 入堆后，返回：%v\n", top)
 	heap.printHeap()
 
-	top = heap.TopK(&ComplexType{3, "3"})
-	fmt.Printf("\ntopk堆顶元素 4 入堆后，返回：%v\n", top)
+	top = heap.TopK(ComplexTypeMinTopK{3, "3"})
+	fmt.Printf("\n最小topk堆顶元素 4 入堆后，返回：%v\n", top)
 	heap.printHeap()
 
-	top = heap.TopK(&ComplexType{5, "5"})
-	fmt.Printf("\ntopk堆顶元素 5 入堆后，返回：%v\n", top)
+	top = heap.TopK(ComplexTypeMinTopK{5, "5"})
+	fmt.Printf("\n最小topk堆顶元素 5 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(ComplexTypeMinTopK{-1, "-1"})
+	fmt.Printf("\n最小topk堆顶元素 -1 入堆后，返回：%v\n", top)
+	heap.printHeap()
+}
+
+func complexTypeTopMaxKCase() {
+	heap := NewTopMaxK[*ComplexTypeMaxTopK](3)
+	/* 初始化堆 */
+	// 初始化大顶堆
+	top := heap.TopK(&ComplexTypeMaxTopK{1, "1"})
+	fmt.Printf("\n最大topk堆顶元素 1 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexTypeMaxTopK{2, "2"})
+	fmt.Printf("\n最大topk堆顶元素 2 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexTypeMaxTopK{3, "3"})
+	fmt.Printf("\n最大topk堆顶元素 3 入堆后，返回：%v\n", top)
+	heap.printHeap()
+
+	top = heap.TopK(&ComplexTypeMaxTopK{5, "5"})
+	fmt.Printf("\n最大topk堆顶元素 5 入堆后，返回：%v\n", top)
 	heap.printHeap()
 }
 
