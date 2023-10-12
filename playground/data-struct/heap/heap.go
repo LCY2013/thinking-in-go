@@ -5,18 +5,15 @@ import (
 	"strconv"
 )
 
-func max(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 type heapType int
 
 const (
 	MaxHeap heapType = iota // MaxHeap is a heap where the root node is the largest node in the tree.
 	MinHeap                 // MinHeap is a heap where the root node is the smallest node in the tree.
+)
+
+const (
+	UnlimitedSize = -1
 )
 
 // Heap is a binary tree with the following properties:
@@ -28,26 +25,85 @@ const (
 type Heap[T any] struct {
 	data         []T
 	size         int
+	maxSize      int
 	hType        heapType
 	defaultValue T
 }
 
-// NewMaxTopHeap returns a new max top heap.
-func NewMaxTopHeap[T any]() *Heap[T] {
-	return &Heap[T]{
-		data:  make([]T, 0, 10),
-		size:  0,
-		hType: MaxHeap,
+type HeapOption[T any] func(*Heap[T])
+
+func WithMaxSize[T any](maxSize int) HeapOption[T] {
+	return func(h *Heap[T]) {
+		h.maxSize = maxSize
 	}
 }
 
-// NewMinTopHeap returns a new min top heap.
-func NewMinTopHeap[T any]() *Heap[T] {
+// NewTopMaxK returns a new max top heap.
+func NewTopMaxK[T any](size int) *Heap[T] {
 	return &Heap[T]{
-		data:  make([]T, 0, 10),
-		size:  0,
-		hType: MinHeap,
+		data:    make([]T, 0, 10),
+		size:    0,
+		hType:   MinHeap,
+		maxSize: size,
 	}
+}
+
+// NewTopMinK returns a new min top heap.
+func NewTopMinK[T any](size int) *Heap[T] {
+	return &Heap[T]{
+		data:    make([]T, 0, 10),
+		size:    0,
+		hType:   MaxHeap,
+		maxSize: size,
+	}
+}
+
+// NewHeap default returns a new max top heap.
+func NewHeap[T any](options ...HeapOption[T]) *Heap[T] {
+	heap := &Heap[T]{
+		data:    make([]T, 0, 10),
+		size:    0,
+		hType:   MaxHeap,
+		maxSize: UnlimitedSize,
+	}
+
+	for _, option := range options {
+		option(heap)
+	}
+
+	return heap
+}
+
+// NewMaxTopHeap returns a new max top heap.
+func NewMaxTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
+	heap := &Heap[T]{
+		data:    make([]T, 0, 10),
+		size:    0,
+		hType:   MaxHeap,
+		maxSize: UnlimitedSize,
+	}
+
+	for _, option := range options {
+		option(heap)
+	}
+
+	return heap
+}
+
+// NewMinTopHeap returns a new min top heap.
+func NewMinTopHeap[T any](options ...HeapOption[T]) *Heap[T] {
+	heap := &Heap[T]{
+		data:    make([]T, 0, 10),
+		size:    0,
+		hType:   MinHeap,
+		maxSize: UnlimitedSize,
+	}
+
+	for _, option := range options {
+		option(heap)
+	}
+
+	return heap
 }
 
 // IsEmpty returns true if the heap is empty.
@@ -88,8 +144,68 @@ func (h *Heap[T]) Peek() T {
 	return h.data[0]
 }
 
+// TopK push a new value to the heap and pop the top value.
+// if the heap size is less than maxSize, push the value to the heap and return the top value.
+// if the heap size is equal to maxSize, push the value to the heap and return the top value.
+func (h *Heap[T]) TopK(v T) T {
+	// unlimited size
+	if h.maxSize == UnlimitedSize {
+		h.Push(v)
+		return h.Peek()
+	}
+
+	// less than maxSize
+	if h.size < h.maxSize {
+		h.Push(v)
+		return h.Peek()
+	}
+
+	top := h.Peek()
+
+	var anyValue any
+	anyValue = h.defaultValue
+
+	switch anyValue.(type) {
+	case int, int32, int64:
+		pv, _ := strconv.ParseInt(fmt.Sprintf("%v", top), 10, 64)
+		vv, _ := strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
+		if vv < pv && h.hType == MaxHeap ||
+			vv > pv && h.hType == MinHeap {
+			h.Pop()
+			h.Push(v)
+		}
+	case float32, float64:
+		pv, _ := strconv.ParseFloat(fmt.Sprintf("%v", top), 64)
+		vv, _ := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+		if vv < pv && h.hType == MaxHeap ||
+			vv > pv && h.hType == MinHeap {
+			h.Pop()
+			h.Push(v)
+		}
+	default:
+		tv, ok := any(top).(interface{ Compare(t any) bool })
+		if !ok {
+			panic("top value not support compare")
+		}
+		vv, ok := any(v).(interface{ Compare(t any) bool })
+		if !ok {
+			panic("top value not support compare")
+			return top
+		}
+		if vv != nil && tv != nil && tv.Compare(vv) {
+			h.Pop()
+			h.Push(v)
+		}
+	}
+
+	return top
+}
+
 // Push adds a new value to the heap.
 func (h *Heap[T]) Push(v T) {
+	if h.maxSize != UnlimitedSize && h.size >= h.maxSize {
+		return
+	}
 	if h.size == len(h.data) {
 		h.data = append(h.data, v)
 	} else {
@@ -116,34 +232,46 @@ func (h *Heap[T]) shuffleUp(idx int) {
 
 		switch anyValue.(type) {
 		case int, int32, int64:
-			pV, cV := any(h.data[p]).(int), any(h.data[idx]).(int)
+			var pv, cv int64
+			if p < h.size {
+				pv, _ = strconv.ParseInt(fmt.Sprintf("%v", h.data[p]), 10, 64)
+			}
+			if idx < h.size {
+				cv, _ = strconv.ParseInt(fmt.Sprintf("%v", h.data[idx]), 10, 64)
+			}
 			// max top heap
 			// if the parent is smaller than the child, swap them
-			if cV > pV && h.hType == MaxHeap {
+			if cv > pv && h.hType == MaxHeap {
 				h.Swap(p, idx)
 				idx = p
 				continue
 			}
 			// min top heap
 			// if the parent is greater than the child, swap them
-			if cV < pV && h.hType == MinHeap {
+			if cv < pv && h.hType == MinHeap {
 				h.Swap(p, idx)
 				idx = p
 				continue
 			}
 			return
 		case float64, float32:
-			pV, cV := any(h.data[p]).(float64), any(h.data[idx]).(float64)
+			var pv, cv int64
+			if p < h.size {
+				pv, _ = strconv.ParseInt(fmt.Sprintf("%v", h.data[p]), 10, 64)
+			}
+			if idx < h.size {
+				cv, _ = strconv.ParseInt(fmt.Sprintf("%v", h.data[idx]), 10, 64)
+			}
 			// max top heap
 			// if the parent is smaller than the child, swap them
-			if cV > pV && h.hType == MaxHeap {
+			if cv > pv && h.hType == MaxHeap {
 				h.Swap(p, idx)
 				idx = p
 				continue
 			}
 			// min top heap
 			// if the parent is greater than the child, swap them
-			if cV < pV && h.hType == MinHeap {
+			if cv < pv && h.hType == MinHeap {
 				h.Swap(p, idx)
 				idx = p
 				continue
@@ -442,7 +570,35 @@ func (h *Heap[T]) arrToTree() *TreeNode {
 
 func main() {
 	//maxTopHeapCase()
-	minTopHeapCase()
+	//minTopHeapCase()
+	topKCase()
+}
+
+func topKCase() {
+	heap := NewTopMaxK[int](3)
+	/* 初始化堆 */
+	// 初始化大顶堆
+	top := heap.TopK(1)
+	fmt.Printf("\ntopk堆顶元素 1 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(2)
+	fmt.Printf("\ntopk堆顶元素 2 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(3)
+	fmt.Printf("\ntopk堆顶元素 3 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(4)
+	fmt.Printf("\ntopk堆顶元素 4 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(5)
+	fmt.Printf("\ntopk堆顶元素 5 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(10)
+	fmt.Printf("\ntopk堆顶元素 10 入堆后，返回：%d\n", top)
+	heap.printHeap()
+	top = heap.TopK(1)
+	fmt.Printf("\ntopk堆顶元素 1 入堆后，返回：%d\n", top)
+	heap.printHeap()
 }
 
 func minTopHeapCase() {
