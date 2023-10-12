@@ -96,15 +96,15 @@ func main() {
 	root := buildTree(nodes)
 	prefix := "/"
 	fmt.Println(prefix + root.ID)
-	printTree(root, prefix)
+	printTree(root, prefix+root.ID)
 }
 
 func printTree(root *Node, prefix string) {
 	for _, child := range root.Children {
-		fmt.Println("/" + child.ID)
+		fmt.Println(prefix + "/" + child.ID)
 	}
 	for _, child := range root.Children {
-		printTree(child, prefix+root.ID+prefix)
+		printTree(child, prefix+"/"+child.ID)
 	}
 }
 
