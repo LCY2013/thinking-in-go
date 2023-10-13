@@ -108,22 +108,3 @@ func (g *AdjMat) Print() {
 		fmt.Printf("\t\t\t%v\n", g.edge[i])
 	}
 }
-
-func main() {
-	// 构造一个无向图
-	g := NewGraphAdjMat()
-	vertices := []int{1, 3, 2, 5, 4}
-	for _, i := range vertices {
-		g.AddVertex(i)
-	}
-	g.Print()
-
-	// 加一条边
-	fmt.Printf("\t添加边 1 -> 3\n")
-	g.AddEdge(1, 3)
-	g.Print()
-	// 减一条边
-	fmt.Printf("\t减掉边 3 -> 1\n")
-	g.RemoveEdge(3, 1)
-	g.Print()
-}
