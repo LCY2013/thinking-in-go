@@ -6,7 +6,9 @@ func main() {
 	// 邻接矩阵无向图示例
 	//adjMat()
 	// 邻接链表无向图示例
-	adjList()
+	//adjList()
+	// 广度优先遍历
+	bfs()
 }
 
 func adjList() {
