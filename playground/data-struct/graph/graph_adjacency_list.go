@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// AdjList GraphAdjList 邻接链表的方式构建无向图信息
+// AdjList GraphAdjList 邻接链表(hash)的方式构建无向图信息
 type AdjList struct {
 	// 顶点列表, 包含边信息
 	vertexList []int
@@ -33,6 +33,17 @@ func (g *AdjList) AddVertex(v int) {
 
 // RemoveVertex 移除顶点信息
 func (g *AdjList) RemoveVertex(v int) {
+	vList, ok := g.vertexMap[v]
+	if !ok {
+		return
+	}
+
+	// 移除边信息
+	for _, jv := range vList {
+		g.RemoveEdge(v, jv)
+	}
+
+	// 移除顶点信息
 	delete(g.vertexMap, v)
 	for idx, ver := range g.vertexList {
 		if ver == v {
