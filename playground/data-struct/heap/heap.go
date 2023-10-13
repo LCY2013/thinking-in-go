@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -563,6 +564,8 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
+var content bytes.Buffer
+
 type Trunk struct {
 	Prev *Trunk
 	Str  string
@@ -573,7 +576,8 @@ func showTrunks(trunk *Trunk) {
 		return
 	}
 	showTrunks(trunk.Prev)
-	fmt.Printf("%s", trunk.Str)
+	//fmt.Printf("%s", trunk.Str)
+	content.WriteString(trunk.Str)
 }
 
 /* Help to print a binary tree, hide more details */
@@ -598,7 +602,8 @@ func printTreeHelper(node *TreeNode, prev *Trunk, isLeft bool) {
 		prev.Str = prevStr
 	}
 	showTrunks(trunk)
-	fmt.Printf("%v\n", node.Val)
+	//fmt.Printf("%v\n", node.Val)
+	content.WriteString(fmt.Sprintf("%v\n", node.Val))
 
 	if prev != nil {
 		prev.Str = prevStr
@@ -609,7 +614,40 @@ func printTreeHelper(node *TreeNode, prev *Trunk, isLeft bool) {
 }
 
 func printTree(node *TreeNode) {
+	content.Reset()
 	printTreeHelper(node, nil, false)
+	fmt.Println(content.String())
+	/*lines := strings.Split(content.String(), "\n")
+	maxLineSize := 0
+	for _, line := range lines {
+		if len([]rune(line)) > maxLineSize {
+			maxLineSize = len([]rune(line))
+		}
+		for i, l := range lines {
+			for idx, w := range []rune(l) {
+				if w == '—' {
+					lines[i] = string([]rune(lines[i])[:idx]) + "|" + string([]rune(lines[i])[idx+1:])
+				} else if w == '|' {
+					lines[i] = string([]rune(lines[i])[:idx]) + "—" + string([]rune(lines[i])[idx+1:])
+				}
+			}
+		}
+	}
+
+	for i := 0; i < maxLineSize; i++ {
+		for _, line := range lines {
+			for idx, w := range []rune(line) {
+				if idx == i {
+					fmt.Printf("%c", w)
+					break
+				}
+			}
+			for idx := len([]rune(line)) + 1; idx < maxLineSize; idx++ {
+				fmt.Printf(" ")
+			}
+		}
+		fmt.Println()
+	}*/
 }
 
 func (h *Heap[T]) printHeap() {
