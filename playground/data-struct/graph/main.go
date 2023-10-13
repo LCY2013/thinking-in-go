@@ -22,6 +22,12 @@ func adjList() {
 	fmt.Printf("添加边 1 -> 3\n")
 	g.AddEdge(1, 3)
 	g.Print()
+
+	// 删除一个顶点后
+	fmt.Printf("\t删除顶点 3\n")
+	g.RemoveVertex(3)
+	g.Print()
+
 	// 减一条边
 	fmt.Printf("减掉边 3 -> 1\n")
 	g.RemoveEdge(3, 1)
@@ -41,6 +47,12 @@ func adjMat() {
 	fmt.Printf("\t添加边 1 -> 3\n")
 	g.AddEdge(1, 3)
 	g.Print()
+
+	// 删除一个顶点后
+	fmt.Printf("\t删除顶点 3\n")
+	g.RemoveVertex(3)
+	g.Print()
+
 	// 减一条边
 	fmt.Printf("\t减掉边 3 -> 1\n")
 	g.RemoveEdge(3, 1)
