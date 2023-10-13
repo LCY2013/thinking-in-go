@@ -684,6 +684,46 @@ func (h *Heap[T]) arrToTree() *TreeNode {
 	return root
 }
 
+// Median Median
+type Median[T int] struct {
+	maxHeap *Heap[T]
+	minHeap *Heap[T]
+}
+
+// NewMedian new median heap
+func NewMedian[T int]() *Median[T] {
+	return &Median[T]{
+		maxHeap: NewMaxTopHeap[T](),
+		minHeap: NewMinTopHeap[T](),
+	}
+}
+
+// Push push v to median heap
+func (m *Median[T]) Push(v T) {
+	if m.maxHeap.Size() == 0 || v < m.maxHeap.Peek() {
+		m.maxHeap.Push(v)
+	} else {
+		m.minHeap.Push(v)
+	}
+	if m.maxHeap.Size()-m.minHeap.Size() > 1 {
+		m.minHeap.Push(m.maxHeap.Pop())
+	} else if m.minHeap.Size()-m.maxHeap.Size() > 1 {
+		m.maxHeap.Push(m.minHeap.Pop())
+	}
+}
+
+// Peek peek median value from heap
+func (m *Median[T]) PeekMedian() float64 {
+	total := m.maxHeap.Size() + m.minHeap.Size()
+	if total%2 == 0 {
+		return float64(m.maxHeap.Peek()+m.minHeap.Peek()) / 2.0
+	}
+	if m.maxHeap.size > m.minHeap.size {
+		return float64(m.maxHeap.Peek())
+	}
+	return float64(m.minHeap.Peek())
+}
+
 func main() {
 	// 大堆
 	//maxTopHeapCase()
@@ -696,7 +736,21 @@ func main() {
 	// 构建大堆
 	//buildMaxHeapCase()
 	// 构建小堆
-	buildMinHeapCase()
+	//buildMinHeapCase()
+	// 求数据流的中位数
+	medianCase()
+}
+
+func medianCase() {
+	median := NewMedian()
+	median.Push(1)
+	fmt.Printf("中位数：%v\n", median.PeekMedian())
+	median.Push(2)
+	fmt.Printf("中位数：%v\n", median.PeekMedian())
+	median.Push(3)
+	fmt.Printf("中位数：%v\n", median.PeekMedian())
+	median.Push(4)
+	fmt.Printf("中位数：%v\n", median.PeekMedian())
 }
 
 func buildMinHeapCase() {
