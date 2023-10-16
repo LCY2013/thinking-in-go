@@ -3,6 +3,8 @@ package main
 import "fmt"
 
 // Bfs 广度优先搜索
+// 广度优先遍历的序列是否唯一？
+// 不唯一。广度优先遍历只要求按“由近及远”的顺序遍历，而多个相同距离的顶点的遍历顺序是允许被任意打乱的。
 func Bfs(list *AdjList) {
 	// 初始化一个队列
 	var queue []int

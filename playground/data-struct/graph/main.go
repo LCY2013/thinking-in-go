@@ -8,7 +8,9 @@ func main() {
 	// 邻接链表无向图示例
 	//adjList()
 	// 广度优先遍历
-	bfs()
+	//bfs()
+	// 深度优先遍历
+	dfs()
 }
 
 func adjList() {
