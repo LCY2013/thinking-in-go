@@ -13,7 +13,7 @@ func runtime(f func()) {
 }
 
 func main() {
-	length := 1000000000
+	length := 100000000
 	orderArr := make([]int, length)
 	for i := 0; i < length; i++ {
 		orderArr[i] = rand.Intn(length)
@@ -30,23 +30,23 @@ func main() {
 			// 希尔排序
 			//shellSort(orderArr)
 			// 快速排序
-			quickSort(orderArr, 0, len(orderArr)-1)
-			//quickSortTailCall(orderArr, 0, len(orderArr)-1)
+			//quickSort(orderArr, 0, len(orderArr)-1)
+			quickSortTailCall(orderArr, 0, len(orderArr)-1)
 		})
 
 	//fmt.Println(orderArr)
 }
 
-// quickSortTailCall 快拍尾递归优化
+// quickSortTailCall 快排尾递归优化空间
 func quickSortTailCall(arr []int, left, right int) {
 	for left < right {
 		pivot := partitionMedian(arr, left, right)
-		if pivot-left > right-pivot {
-			partitionMedian(arr, left, pivot-1)
-			left = left + 1
+		if pivot-left < right-pivot {
+			quickSortTailCall(arr, left, pivot-1)
+			left = pivot + 1
 		} else {
-			partitionMedian(arr, pivot+1, right)
-			right = right - 1
+			quickSortTailCall(arr, pivot+1, right)
+			right = pivot - 1
 		}
 	}
 }
