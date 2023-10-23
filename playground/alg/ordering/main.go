@@ -13,10 +13,15 @@ func runtime(f func()) {
 }
 
 func main() {
+	// 亿
 	length := 100000000
+	//length := 100
 	orderArr := make([]int, length)
 	for i := 0; i < length; i++ {
 		orderArr[i] = rand.Intn(length)
+	}
+	if len(orderArr) <= 100 {
+		fmt.Println(orderArr)
 	}
 	//orderArr := []int{1, 3, 2, 5, 4, 8, 9, 10000, 100000, 1, 3, 10, 50, 80, 100, 22, 42, 12}
 	runtime(
@@ -30,11 +35,63 @@ func main() {
 			// 希尔排序
 			//shellSort(orderArr)
 			// 快速排序
-			quickSort(orderArr, 0, len(orderArr)-1)
+			//quickSort(orderArr, 0, len(orderArr)-1)
 			//quickSortTailCall(orderArr, 0, len(orderArr)-1)
+			// 归并排序
+			mergeSort(orderArr, 0, len(orderArr)-1)
 		})
 
-	//fmt.Println(orderArr)
+	if len(orderArr) <= 100 {
+		fmt.Println(orderArr)
+	}
+}
+
+// merge 辅助合并函数，用于合并两个有序数组
+// 左区间范围[left, mid]
+// 右区间范围[mid+1, right]
+func merge(arr []int, left, mid, right int) {
+	// 先将左右两个区间的内容保存在临时tmp
+	tmp := make([]int, right+1-left)
+	for idx := 0; idx <= right-left; idx++ {
+		tmp[idx] = arr[left+idx]
+	}
+
+	// 计算两个区间的左右下标信息
+	leftStart, leftEnd := left-left, mid-left
+	rightStart, rightEnd := mid+1-left, right-left
+
+	// 记录左右区间开始合并有序数组
+	i, j := leftStart, rightStart
+	for idx := left; idx <= right; idx++ {
+		// 如果左边的数组已经并入完成就执行
+		if i > leftEnd {
+			arr[idx] = tmp[j]
+			j++
+		} else if j > rightEnd {
+			// 如果右边的数组已经并入完成
+			arr[idx] = tmp[i]
+			i++
+		} else if i <= leftEnd && tmp[i] <= tmp[j] {
+			// 如果左边的小于右边就先左边进入
+			arr[idx] = tmp[i]
+			i++
+		} else {
+			// 如果右边的小就右边的先进入
+			arr[idx] = tmp[j]
+			j++
+		}
+	}
+}
+
+// mergeSort 归并排序
+func mergeSort(arr []int, left, right int) {
+	if left >= right {
+		return
+	}
+	mid := (left + right) / 2
+	mergeSort(arr, left, mid)
+	mergeSort(arr, mid+1, right)
+	merge(arr, left, mid, right)
 }
 
 // quickSortTailCall 快排尾递归优化空间
