@@ -30,8 +30,8 @@ func main() {
 			// 希尔排序
 			//shellSort(orderArr)
 			// 快速排序
-			//quickSort(orderArr, 0, len(orderArr)-1)
-			quickSortTailCall(orderArr, 0, len(orderArr)-1)
+			quickSort(orderArr, 0, len(orderArr)-1)
+			//quickSortTailCall(orderArr, 0, len(orderArr)-1)
 		})
 
 	//fmt.Println(orderArr)
