@@ -139,7 +139,7 @@ func insertionSort(arr []int) {
 		base := arr[i]
 		// 找到未排序的最后一个元素
 		j := i - 1
-		for ; j > 0 && arr[j] > base; j-- {
+		for ; j >= 0 && arr[j] > base; j-- {
 			arr[j+1] = arr[j]
 		}
 		// 最后有一个j--找到了第一个小于等于base的值，所以需要+1找到第一个大于base的下标
