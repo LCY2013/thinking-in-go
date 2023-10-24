@@ -14,8 +14,8 @@ func runtime(f func()) {
 
 func main() {
 	// 亿
-	length := 100000000
-	//length := 100
+	//length := 100000000
+	length := 100
 	orderArr := make([]int, length)
 	for i := 0; i < length; i++ {
 		orderArr[i] = rand.Intn(length)
@@ -38,11 +38,65 @@ func main() {
 			//quickSort(orderArr, 0, len(orderArr)-1)
 			//quickSortTailCall(orderArr, 0, len(orderArr)-1)
 			// 归并排序
-			mergeSort(orderArr, 0, len(orderArr)-1)
+			// mergeSort(orderArr, 0, len(orderArr)-1)
+			// 堆排序见heap.go
+			// 桶排序
+			bucketSort(orderArr)
 		})
 
 	if len(orderArr) <= 100 {
 		fmt.Println(orderArr)
+	}
+}
+
+// bucketSort 桶排序
+func bucketSort(arr []int) {
+	// 桶的最大值, 桶的最小值
+	bucketMax, bucketMin := 0, 0
+	// 找到最大值和最小值
+	for _, v := range arr {
+		if bucketMax < v {
+			bucketMax = v
+		}
+		if bucketMin > v {
+			bucketMin = v
+		}
+	}
+
+	// 桶的数量
+	bucketNum := bucketMax - bucketMin + 1
+
+	// 桶的大小
+	bucketSize := len(arr) / bucketNum
+	// 桶的数量
+	if len(arr)%bucketNum > 0 {
+		bucketNum++
+	}
+
+	// 初始化桶
+	buckets := make([][]int, bucketNum)
+	for i := 0; i < bucketNum; i++ {
+		buckets[i] = make([]int, 0)
+	}
+
+	// 将元素放入桶中
+	for _, v := range arr {
+		idx := (v - bucketMin) / bucketSize
+		buckets[idx] = append(buckets[idx], v)
+	}
+
+	// 对每个桶进行排序, 利用插入排序对小数据量排序
+	for _, bucket := range buckets {
+		insertionSort(bucket)
+	}
+
+	// 将桶中的元素放回原数组
+	idx := 0
+	for _, bucket := range buckets {
+		for _, v := range bucket {
+			arr[idx] = v
+			idx++
+		}
 	}
 }
 
