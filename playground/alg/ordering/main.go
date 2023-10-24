@@ -12,13 +12,21 @@ func runtime(f func()) {
 	fmt.Printf("speed time: %d\n", time.Now().UnixMilli()-now)
 }
 
+func random() int {
+	n := rand.Intn(2)
+	if n > 0 {
+		return 1
+	}
+	return -1
+}
+
 func main() {
 	// 亿
-	//length := 100000000
-	length := 10
+	length := 100000000
+	//length := 100
 	orderArr := make([]int, length)
 	for i := 0; i < length; i++ {
-		orderArr[i] = rand.Intn(length)
+		orderArr[i] = rand.Intn(length) //* random()
 	}
 	if len(orderArr) <= 100 {
 		fmt.Println(orderArr)
@@ -44,10 +52,54 @@ func main() {
 			//bucketSort(orderArr)
 			// 计数排序
 			countingSort(orderArr)
+			// 基数排序
+			//radixSort(orderArr)
 		})
 
 	if len(orderArr) <= 100 {
 		fmt.Println(orderArr)
+	}
+}
+
+// radixSort 基数排序
+func radixSort(arr []int) {
+	// 找到最大值
+	max := arr[0]
+	for _, v := range arr {
+		if max < v {
+			max = v
+		}
+	}
+
+	// 位数
+	for radix := 1; radix <= max; radix *= 10 {
+		// 位数计数器
+		countingArr := make([]int, 10)
+
+		// 计算每个位数的个数
+		for _, v := range arr {
+			idx := (v / radix) % 10
+			countingArr[idx]++
+		}
+
+		// 计算每个位数的位置
+		for i := 1; i < len(countingArr); i++ {
+			countingArr[i] += countingArr[i-1]
+		}
+
+		// 临时数组
+		tmp := make([]int, len(arr))
+		// 从后往前遍历
+		for i := len(arr) - 1; i >= 0; i-- {
+			idx := (arr[i] / radix) % 10
+			tmp[countingArr[idx]-1] = arr[i]
+			countingArr[idx]--
+		}
+
+		// 将临时数组的值赋值给原数组
+		for i := 0; i < len(arr); i++ {
+			arr[i] = tmp[i]
+		}
 	}
 }
 
@@ -211,13 +263,14 @@ func quickSort(arr []int, left, right int) {
 	}
 	// 获取新的基准点
 	//pivot := partition(arr, left, right)
-	pivot := partitionMedian(arr, left, right)
 
 	// 左
 	//quickSort(arr, left, pivot-1)
-	partitionMedian(arr, left, pivot-1)
 	//quickSort(arr, pivot+1, right)
-	partitionMedian(arr, pivot+1, right)
+
+	pivot := partitionMedian(arr, left, right)
+	quickSort(arr, left, pivot-1)
+	quickSort(arr, pivot+1, right)
 }
 
 // partition 快速排序类-哨兵划分
