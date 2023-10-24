@@ -15,7 +15,7 @@ func runtime(f func()) {
 func main() {
 	// 亿
 	//length := 100000000
-	length := 100
+	length := 10
 	orderArr := make([]int, length)
 	for i := 0; i < length; i++ {
 		orderArr[i] = rand.Intn(length)
@@ -41,11 +41,53 @@ func main() {
 			// mergeSort(orderArr, 0, len(orderArr)-1)
 			// 堆排序见heap.go
 			// 桶排序
-			bucketSort(orderArr)
+			//bucketSort(orderArr)
+			// 计数排序
+			countingSort(orderArr)
 		})
 
 	if len(orderArr) <= 100 {
 		fmt.Println(orderArr)
+	}
+}
+
+// countingSort 计数排序
+func countingSort(arr []int) {
+	// 找到最大值和最小值
+	max, min := arr[0], arr[0]
+	for _, v := range arr {
+		if max < v {
+			max = v
+		}
+		if min > v {
+			min = v
+		}
+	}
+
+	// 计算计数数组的大小
+	countingArr := make([]int, max-min+1)
+
+	// 计算每个元素的个数
+	for _, v := range arr {
+		countingArr[v-min]++
+	}
+
+	// 计算每个元素的位置
+	for i := 1; i < len(countingArr); i++ {
+		countingArr[i] += countingArr[i-1]
+	}
+
+	// 临时数组
+	tmp := make([]int, len(arr))
+	for i := len(arr) - 1; i >= 0; i-- {
+		idx := countingArr[arr[i]-min] - 1
+		tmp[idx] = arr[i]
+		countingArr[arr[i]-min]--
+	}
+
+	// 将临时数组的值赋值给原数组
+	for i := 0; i < len(arr); i++ {
+		arr[i] = tmp[i]
 	}
 }
 
