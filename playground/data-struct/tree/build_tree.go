@@ -48,7 +48,7 @@ func builderTreeHelper(preorder []int, inorderMap map[int]int, preIdx, left, rig
 
 	// 构建左子树
 	root.Left = builderTreeHelper(preorder, inorderMap, preIdx+1, left, inorderMap[root.Val]-1)
-	// 构建右子树
+	// 构建右子树, inorderMap[root.Val]-left 代表左子树的数量
 	root.Right = builderTreeHelper(preorder, inorderMap, preIdx+1+inorderMap[root.Val]-left, inorderMap[root.Val]+1, right)
 	return root
 }
