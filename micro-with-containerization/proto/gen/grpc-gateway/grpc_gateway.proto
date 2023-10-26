@@ -51,6 +51,9 @@ service GrpcGateway {
 }
 
 /**
+https://github.com/fullstorydev/grpcurl
+https://github.com/grpc-ecosystem/grpc-gateway
+
 protoc -I . \
     --go_out . --go_opt paths=source_relative \
     --go-grpc_out . --go-grpc_opt paths=source_relative \
