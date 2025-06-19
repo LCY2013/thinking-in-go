@@ -1,6 +1,6 @@
 module github.com/LCY2013/thinking-in-go/container/docker
 
-go 1.19
+go 1.24
 
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect

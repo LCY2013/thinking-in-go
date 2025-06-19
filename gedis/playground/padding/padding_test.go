@@ -11,8 +11,11 @@ type S1 struct {
 }
 
 type S2 struct {
-	num1 int16
-	num2 int32
+	//_ byte
+	//num1 int16
+	//_ [6]string
+	//num2 int64
+	_ string
 }
 
 // TestPadding 内存对齐

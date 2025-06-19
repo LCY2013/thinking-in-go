@@ -1,6 +1,6 @@
 module github.com/lcy2013/instrument_trace
 
-go 1.19
+go 1.24
 
 require (
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f

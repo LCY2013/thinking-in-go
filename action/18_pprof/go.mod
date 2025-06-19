@@ -1,6 +1,6 @@
 module pprof
 
-go 1.19
+go 1.24
 
 require mosn.io/holmes v1.0.2
 

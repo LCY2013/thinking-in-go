@@ -1,6 +1,6 @@
 module grpc-mic
 
-go 1.19
+go 1.24
 
 replace google.golang.org/grpc => github.com/grpc/grpc-go v1.32.0
 

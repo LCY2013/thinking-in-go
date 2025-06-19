@@ -236,7 +236,7 @@ type NewType2[T interface{ *int | *float64 }] []T
 
 // NewType3 如果类型约束中只有一个类型，可以添加个逗号消除歧义
 
-type NewType3[T *int,] []T
+type NewType3[T *int, ] []T
 
 // 因为上面逗号的用法限制比较大，这里推荐统一用 interface{} 解决问题
 
@@ -936,7 +936,7 @@ type anySlice[T any] []T // 代码等价于 type anySlice[T interface{}] []T
 // any is an alias for interface{} and is equivalent to interface{} in all ways.
 type any = interface{}
 
-所以从 go 1.19 开始，所有可以用到空接口的地方其实都可以直接替换为any，如：
+所以从 go 1.24 开始，所有可以用到空接口的地方其实都可以直接替换为any，如：
 
 var s []any // 等价于 var s []interface{}
 var m map[string]any // 等价于 var m map[string]interface{}

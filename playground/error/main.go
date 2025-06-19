@@ -1,6 +1,6 @@
 package main
 
-import "fmt"
+import "unsafe"
 
 type Err struct {
 }
@@ -16,7 +16,9 @@ func E() error {
 }
 
 func main() {
-	if err := E(); err != nil {
+	/*if err := E(); err != nil {
 		fmt.Println("err", err)
-	}
+	}*/
+	var a []int
+	println(unsafe.Pointer(&a))
 }
