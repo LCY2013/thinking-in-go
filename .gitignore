@@ -120,3 +120,4 @@ fabric.properties
 .idea
 
 tempdata
+/cicd/cicd-ignore
