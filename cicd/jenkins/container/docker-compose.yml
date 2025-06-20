@@ -1,4 +1,5 @@
 services:
+  # a9fa84ebf5bf46dcad8fd4ff519195f7
   jenkins:
     image: jenkins/jenkins:jdk21
     restart: always
