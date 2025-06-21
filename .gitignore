@@ -121,3 +121,4 @@ fabric.properties
 
 tempdata
 /cicd/cicd-ignore
+/cicd/k8s-config/
