@@ -218,3 +218,26 @@ sudo journalctl -u kubelet -f  # 查看日志
 
 ```
 
+### containerd重启后问题
+1. 清理残留的容器和沙箱
+```shell
+# 停止 kubelet 服务
+sudo systemctl stop kubelet
+
+# 清理 containerd 中的残留容器
+sudo crictl rm -fa
+sudo crictl rmp -fa
+
+# 清理网络命名空间
+sudo ip netns list | xargs -I {} sudo ip netns delete {}
+
+# 清理 containerd 状态
+sudo systemctl stop containerd
+sudo rm -rf /var/lib/containerd/io.containerd.runtime.v2.task/k8s.io/*
+sudo systemctl start containerd
+
+# 启动 kubelet 服务
+sudo systemctl start kubelet
+```
+
+
