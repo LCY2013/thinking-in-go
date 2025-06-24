@@ -81,7 +81,7 @@ sudo apt update
 sudo kubeadm init \
   --apiserver-advertise-address=192.168.0.200 \
   --kubernetes-version=v1.32.6 \
-  --pod-network-cidr=192.168.0.0/16 \
+  --pod-network-cidr=10.42.0.0/16 \
   --image-repository=registry.k8s.io \
   --cri-socket=unix:///run/containerd/containerd.sock
   
@@ -179,7 +179,7 @@ helm install cilium cilium/cilium \
   --version 1.14.3 \
   --namespace kube-system \
   --set tunnel=vxlan \
-  --set ipv4NativeRoutingCIDR=192.168.0.0/16 \
+  --set ipv4NativeRoutingCIDR=10.42.0.0/16 \
   --set kubeProxyReplacement=strict
 
 # 等待 Cilium 就绪
