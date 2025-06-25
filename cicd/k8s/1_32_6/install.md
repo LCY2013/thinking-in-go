@@ -121,8 +121,8 @@ kubectl wait --for=condition=ready pod -l k8s-app=calico-node -n kube-system --t
 #  --token <your-token> \
 #  --discovery-token-ca-cert-hash sha256:<your-hash>
 # Worker 节点加入集群 (201, 202)
-kubeadm join 192.168.0.200:6443 --token 7ggoib.q21uo13cdguju7u1 \
-	--discovery-token-ca-cert-hash sha256:8a1e38e85fb8b980d6bc916e465cdd4318960ab186ea40560218f836c60f3282 
+kubeadm join 192.168.0.200:6443 --token rvmez7.2afkv90jfbena60h \
+	--discovery-token-ca-cert-hash sha256:933ff7c7bb1e60a870b1f03ffe3f8f4e290e1293bb7594d0fcfa4bbcfc44ded7 
 #[preflight] Running pre-flight checks
 #[preflight] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
 #[preflight] Use 'kubeadm init phase upload-config --config your-config.yaml' to re-upload it.
